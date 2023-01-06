@@ -3,6 +3,11 @@
 
 #pragma once
 
+#define null NULL
+#define beginof(_x) (&(_x)[0])
+#define countof(_x) (sizeof(_x) / sizeof((_x)[0]))
+
+#include <map>
 #include <vector>
 
 namespace ft
@@ -11,12 +16,20 @@ namespace ft
     {
         typedef int ident_t;
 
+        typedef int error_t;
+
         typedef unsigned char byte_t;
 
         template <typename T>
         struct dynamic_array
         {
             typedef std::vector<T> type;
+        };
+
+        template <typename K, typename V>
+        struct fast_dictionary
+        {
+            typedef std::map<K, V> type; // unordered_map, flat_map
         };
     }
 }

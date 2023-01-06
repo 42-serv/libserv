@@ -5,7 +5,6 @@
 
 #include "serv_types.hpp"
 
-#include <algorithm>
 #include <cstring>
 
 #include <cassert>
@@ -48,8 +47,7 @@ namespace ft
                 assert(this->raw_size() >= size);
 
                 const iterator begin = this->buffer.begin();
-                iterator end = begin;
-                std::advance(end, size);
+                const iterator end = begin + size;
                 // consider devector
                 this->buffer.erase(begin, end);
             }
