@@ -16,8 +16,6 @@ namespace ft
     {
         typedef int ident_t;
 
-        typedef int error_t;
-
         typedef unsigned char byte_t;
 
         template <typename T>

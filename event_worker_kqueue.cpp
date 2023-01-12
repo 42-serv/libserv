@@ -1,22 +1,21 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
-#include "event_loop.hpp"
+#include "event_worker.hpp"
 
-#include "channel_base.hpp"
+#include "event_channel.hpp"
 #include "logger.hpp"
 #include "serv_exception.hpp"
 #include "serv_types.hpp"
 #include "socket_utils.hpp"
 
-#include "pthread_wrapper.hpp"
-
 #include <smart_ptr/shared_ptr.hpp>
+#include <thread/lock_guard.hpp>
+#include <thread/mutex.hpp>
 
 #include <sys/event.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-
 #include <unistd.h>
 
 #include <algorithm>
@@ -29,8 +28,8 @@ typedef ft::serv::dynamic_array<struct ::kevent>::type event_list;
 static const event_list::size_type MAX_EVENTS = 4096;
 static const ft::serv::ident_t WAKE_UP_IDENT = 0;
 
-ft::serv::event_loop::event_loop()
-    : boss_fd(::kqueue())
+ft::serv::event_worker::event_worker()
+    : lock(), boss_fd(::kqueue()), boss_list(), channels(), tasks()
 {
     if (this->boss_fd < 0)
     {
@@ -45,23 +44,14 @@ ft::serv::event_loop::event_loop()
         close_socket(this->boss_fd);
         throw e;
     }
-
-    error_t error_mutex = ::pthread_mutex_init(&this->lock, null);
-    if (error_mutex != 0)
-    {
-        const syscall_failed e(error_mutex);
-        close_socket(this->boss_fd);
-        throw e;
-    }
 }
 
-ft::serv::event_loop::~event_loop()
+ft::serv::event_worker::~event_worker()
 {
-    ::pthread_mutex_destroy(&this->lock);
     close_socket(this->boss_fd);
 }
 
-void ft::serv::event_loop::add_channel(const ident_t ident, const ft::shared_ptr<channel_base>& channel)
+void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_ptr<event_channel>& channel)
 {
     // TODO: assert(this->is_in_event_loop());
 
@@ -81,7 +71,7 @@ void ft::serv::event_loop::add_channel(const ident_t ident, const ft::shared_ptr
     }
 }
 
-void ft::serv::event_loop::remove_channel(const ident_t ident)
+void ft::serv::event_worker::remove_channel(const ident_t ident)
 {
     // TODO: assert(this->is_in_event_loop());
 
@@ -101,7 +91,7 @@ void ft::serv::event_loop::remove_channel(const ident_t ident)
     }
 }
 
-void ft::serv::event_loop::watch_writability(const ident_t ident, const bool enable)
+void ft::serv::event_worker::watch_writability(const ident_t ident, const bool enable)
 {
     // TODO: assert(this->is_in_event_loop());
 
@@ -111,9 +101,9 @@ void ft::serv::event_loop::watch_writability(const ident_t ident, const bool ena
     changes.insert(changes.end(), beginof(change), &change[countof(change)]);
 }
 
-void ft::serv::event_loop::offer_task(const ft::shared_ptr<task_base> task)
+void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base> task)
 {
-    ft::pthread_mutex_guard(this->lock);
+    const ft::lock_guard<ft::mutex> lock(this->lock);
     try
     {
         this->tasks.push_back(task);
@@ -124,7 +114,7 @@ void ft::serv::event_loop::offer_task(const ft::shared_ptr<task_base> task)
     }
 }
 
-void ft::serv::event_loop::loop()
+void ft::serv::event_worker::loop()
 {
     event_list events;
     event_list changes;
@@ -138,7 +128,7 @@ void ft::serv::event_loop::loop()
     {
         ::time_t timeout_sec;
         {
-            pthread_mutex_guard(this->lock);
+            const ft::lock_guard<ft::mutex> lock(this->lock);
             // if has task then polling
             timeout_sec = this->tasks.empty() ? 0 : 1;
         }
@@ -171,7 +161,7 @@ void ft::serv::event_loop::loop()
     }
 }
 
-void ft::serv::event_loop::wake_up()
+void ft::serv::event_worker::wake_up()
 {
     // TODO: assert(this->is_in_event_loop());
 
@@ -188,7 +178,7 @@ void ft::serv::event_loop::wake_up()
     }
 }
 
-void ft::serv::event_loop::process_events(void* list, int n) throw()
+void ft::serv::event_worker::process_events(void* list, int n) throw()
 {
     event_list& events = *static_cast<event_list*>(list);
 
@@ -216,30 +206,30 @@ void ft::serv::event_loop::process_events(void* list, int n) throw()
             // no channel!!
             continue;
         }
-        const ft::shared_ptr<channel_base>& channel = it_channel->second;
+        const ft::shared_ptr<event_channel>& channel = it_channel->second;
 
         if (evi.filter == EVFILT_WRITE)
         {
-            channel->_internal_trigger_write();
+            channel->trigger_write();
         }
         else if (evi.filter == EVFILT_READ)
         {
             // TODO: use `evi.data`
-            channel->_internal_trigger_read();
+            channel->trigger_read();
         }
 
         if (evi.flags & EV_EOF)
         {
-            // TODO: _internal_trigger_read_eof, RDHUP?
+            // TODO: trigger_read_eof, RDHUP?
         }
     }
 }
 
-void ft::serv::event_loop::execute_tasks() throw()
+void ft::serv::event_worker::execute_tasks() throw()
 {
     task_list snapshot;
     {
-        ft::pthread_mutex_guard(this->lock);
+        const ft::lock_guard<ft::mutex> lock(this->lock);
         snapshot = this->tasks;
         this->tasks.clear();
     }

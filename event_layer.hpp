@@ -3,17 +3,23 @@
 
 #pragma once
 
+#include "event_handler_base.hpp"
 #include "serv_types.hpp"
+
+#include <smart_ptr/shared_ptr.hpp>
 
 namespace ft
 {
     namespace serv
     {
-        class channel_base
+        class event_layer
         {
-        public:
-            virtual ~channel_base() {}
+        private:
+            event_layer* next;
+            event_layer* prev;
+            ft::shared_ptr<event_handler_base> handler;
 
+        public:
             virtual void notify_active() = 0;
             virtual void notify_read() = 0;
             virtual void notify_write() = 0;
@@ -27,12 +33,9 @@ namespace ft
             virtual void post_flush() = 0;
             virtual void post_disconnect() = 0;
 
-            void _internal_trigger_read() throw();
-            void _internal_trigger_write() throw();
-
         private:
-            channel_base(const channel_base&);
-            channel_base& operator=(const channel_base&);
+            event_layer(const event_layer&);
+            event_layer& operator=(const event_layer&);
         };
     }
 }

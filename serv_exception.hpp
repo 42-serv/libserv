@@ -5,14 +5,16 @@
 
 #include "serv_types.hpp"
 
-#include <errno.h>
-
+#include <cerrno>
+#include <cstring>
 #include <exception>
 
 namespace ft
 {
     namespace serv
     {
+        typedef int error_t;
+
         class syscall_failed : public std::exception
         {
         private:
@@ -22,7 +24,7 @@ namespace ft
             syscall_failed() throw() : e(errno) {}
             syscall_failed(error_t e) throw() : e(e) {}
             virtual ~syscall_failed() throw() {}
-            virtual const char* what() const throw() { return "system call failed"; }
+            virtual const char* what() const throw() { return const_cast<const char*>(std::strerror(this->e)); }
 
             error_t error() const throw() { return this->e; }
         };

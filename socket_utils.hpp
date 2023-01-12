@@ -10,29 +10,27 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
-
 #include <unistd.h>
 
 namespace ft
 {
     namespace serv
     {
-        inline static error_t close_socket(const ident_t sock)
+        static inline void close_socket(const ident_t sock)
         {
             if (::close(sock) < 0)
             {
                 const syscall_failed e;
-                return e.error();
+                // ignore
             }
-            return error_t();
         }
 
-        inline static bool set_socket_reuse_address(const ident_t sock, const bool value)
+        static inline bool set_socket_reuse_address(const ident_t sock, const bool value)
         {
             return !(::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)) < 0);
         }
 
-        inline static bool set_socket_linger(const ident_t sock, const bool enable, const int time_in_seconds)
+        static inline bool set_socket_linger(const ident_t sock, const bool enable, const int time_in_seconds)
         {
             struct linger value;
             value.l_onoff = enable;
@@ -41,12 +39,12 @@ namespace ft
             return !(::setsockopt(sock, SOL_SOCKET, SO_LINGER, &value, sizeof(value)) < 0);
         }
 
-        inline static bool set_tcp_nodelay(const ident_t sock, const bool value)
+        static inline bool set_tcp_nodelay(const ident_t sock, const bool value)
         {
             return !(::setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value)) < 0);
         }
 
-        inline static bool set_nonblocking(const ident_t sock, const bool value)
+        static inline bool set_nonblocking(const ident_t sock, const bool value)
         {
             int status_flags = ::fcntl(sock, F_GETFL, 0);
             if (status_flags < 0)
