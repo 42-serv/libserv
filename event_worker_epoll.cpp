@@ -13,7 +13,8 @@
 #include <thread/lock_guard.hpp>
 #include <thread/mutex.hpp>
 
-#include <sys/event.h>
+#include <sys/epoll.h>
+#include <sys/eventfd.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -27,33 +28,78 @@ namespace ft
 {
     namespace serv
     {
-        typedef dynamic_array<struct ::kevent>::type event_list;
+        typedef dynamic_array<struct ::epoll_event>::type event_list;
 
         static const event_list::size_type MAX_EVENTS = 4096;
+        static const ident_t WAKE_UP_IDENT = 0;
+
+        static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel& channel)
+        {
+            int flags = 0;
+            if (channel.readability_interested)
+            {
+                flags |= EPOLLIN;
+            }
+            if (channel.writability_interested)
+            {
+                flags |= EPOLLOUT;
+            }
+            ident_t ident = channel.get_ident();
+            struct ::epoll_event change;
+            change.events = flags;
+            change.data.fd = ident;
+            if (::epoll_ctl(epoll_fd, epoll_operation, ident, &change) < 0)
+            {
+                throw syscall_failed();
+            }
+            channel.readability_enabled = channel.readability_interested;
+            channel.writability_enabled = channel.writability_interested;
+        }
     }
 }
 
 ft::serv::event_worker::event_worker()
-    : lock(), boss_ident(::kqueue()), event_ident(0), boss_list(), channels(), tasks()
+    : lock(), boss_ident(::epoll_create1(EPOLL_CLOEXEC)), event_ident(0), boss_list(), channels(), tasks()
 {
-    if (this->boss_ident < 0)
+    try
     {
-        throw syscall_failed();
-    }
+        if (this->boss_ident < 0)
+        {
+            throw syscall_failed();
+        }
 
-    struct ::kevent change[1];
-    EV_SET(&change[0], this->event_ident, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
-    if (::kevent(this->boss_ident, beginof(change), countof(change), null, 0, null) < 0)
+        this->event_ident = ::eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+        if (this->event_ident < 0)
+        {
+            throw syscall_failed();
+        }
+
+        struct ::epoll_event change;
+        change.events = EPOLLIN;
+        change.data.fd = this->event_ident;
+        if (::epoll_ctl(this->boss_ident, EPOLL_CTL_ADD, this->event_ident, &change) < 0)
+        {
+            throw syscall_failed();
+        }
+    }
+    catch (const syscall_failed& e)
     {
-        const syscall_failed e;
-        close_socket(this->boss_ident);
-        throw e;
+        if (!(this->boss_ident < 0))
+        {
+            close_socket(this->boss_ident);
+        }
+        if (!(this->event_ident < 0))
+        {
+            close_socket(this->event_ident);
+        }
+        throw;
     }
 }
 
 ft::serv::event_worker::~event_worker()
 {
     close_socket(this->boss_ident);
+    close_socket(this->event_ident);
 }
 
 void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_ptr<event_channel>& channel)
@@ -66,7 +112,7 @@ void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_p
     {
         channel->readability_interested = true;
         channel->writability_interested = true;
-        this->watch_ability(*channel);
+        _epoll_operation(this->boss_ident, EPOLL_CTL_ADD, *channel);
     }
     else
     {
@@ -85,7 +131,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
         const ft::shared_ptr<event_channel>& channel = it->second;
         channel->readability_interested = false;
         channel->writability_interested = false;
-        this->watch_ability(*channel);
+        _epoll_operation(this->boss_ident, EPOLL_CTL_DEL, *channel);
         this->channels.erase(it);
     }
     else
@@ -98,23 +144,7 @@ void ft::serv::event_worker::watch_ability(event_channel& channel)
 {
     // TODO: assert(this->is_in_event_loop());
 
-    const int flags_add = EV_ADD | EV_ENABLE | EV_CLEAR;
-    const int flags_del = EV_DELETE | EV_DISABLE;
-
-    event_list& changes = *static_cast<event_list*>(this->boss_list);
-    struct ::kevent change[2];
-    std::size_t count = 0;
-    if (channel.readability_enabled != channel.readability_interested)
-    {
-        EV_SET(&change[count++], ident, EVFILT_READ, channel.readability_interested ? flags_add : flags_del, 0, 0, null);
-        channel.readability_enabled = channel.readability_interested;
-    }
-    if (channel.writability_enabled != channel.writability_interested)
-    {
-        EV_SET(&change[count++], ident, EVFILT_WRITE, channel.writability_interested ? flags_add : flags_del, 0, 0, null);
-        channel.writability_enabled = channel.writability_interested;
-    }
-    changes.insert(changes.end(), beginof(change), &change[count]);
+    _epoll_operation(this->boss_ident, EPOLL_CTL_MOD, channel);
 }
 
 void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
@@ -133,41 +163,35 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
 void ft::serv::event_worker::loop()
 {
     event_list events;
-    event_list changes;
 
     events.resize(MAX_EVENTS);
-    changes.reserve(MAX_EVENTS);
 
-    this->boss_list = &changes;
+    this->boss_list = NULL;
 
     for (;;)
     {
-        ::time_t timeout_sec;
+        ::time_t timeout_millis;
         {
             const ft::lock_guard<ft::mutex> lock(this->lock);
             // if has task then polling
-            timeout_sec = this->tasks.empty() ? 0 : 1;
+            timeout_millis = this->tasks.empty() ? 0 : 1000;
         }
-        const struct ::timespec timeout = {timeout_sec, 0};
-        const int n = ::kevent(this->boss_ident, changes.data(), changes.size(), events.data(), events.size(), &timeout);
+        const int n = ::epoll_wait(this->boss_ident, events.data(), events.size(), timeout_millis);
         if (n < 0)
         {
             const syscall_failed e;
             if (e.error() == EINTR)
             {
-                // When kevent() call fails with EINTR error, all changes in the changelist have been applied.
-                // https://www.freebsd.org/cgi/man.cgi?query=kqueue&sektion=2
-                changes.clear();
+                // ignore
             }
             else
             {
-                logger::warn("Error on kevent");
+                logger::warn("Error on epoll_wait");
                 ::sleep(1);
             }
             continue;
         }
 
-        changes.clear();
         if (n != 0)
         {
             this->process_events(&events, n);
@@ -187,16 +211,10 @@ void ft::serv::event_worker::wake_up()
 {
     // TODO: if (this->is_in_event_loop()) return;
 
-    struct ::kevent change[1];
-    EV_SET(&change[0], this->event_ident, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
-    if (::kevent(this->boss_ident, beginof(change), countof(change), null, 0, null) < 0)
-    {
-        const syscall_failed e;
-        if (e.error() != EINTR)
-        {
-            throw e;
-        }
-    }
+    ::eventfd_t value = 1;
+    const int r = ::eventfd_write(this->event_ident, value);
+    // ignore errors
+    static_cast<void>(r);
 }
 
 void ft::serv::event_worker::process_events(void* list, int n) throw()
@@ -205,41 +223,42 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
 
     for (int i = 0; i < n; i++)
     {
-        const struct ::kevent& evi = events[i];
-        // evi.udata: event_invoker
+        const struct ::epoll_event& evi = events[i];
 
-        if (evi.filter == EVFILT_USER)
+        const ident_t ident = evi.data.fd;
+        if (ident == this->event_ident)
         {
             // wakeup?
+            ::eventfd_t value;
+            const int r = ::eventfd_read(evi.data.fd, &value);
+            // ignore errors
+            static_cast<void>(r);
             continue;
         }
 
-        if (evi.flags & EV_ERROR)
-        {
-            // double delete? (close after delete)
-            continue;
-        }
-
-        const ident_t ident = evi.ident;
         const channel_dictionary::const_iterator it_channel = this->channels.find(ident);
         if (it_channel == this->channels.end())
         {
             // no channel!!
+            const int r = ::epoll_ctl(this->boss_ident, EPOLL_CTL_DEL, ident, null);
+            // ignore errors
+            static_cast<void>(r);
             continue;
         }
         const ft::shared_ptr<event_channel>& channel = it_channel->second;
 
-        if (evi.filter == EVFILT_WRITE)
+        if (evi.events & (EPOLLOUT | EPOLLERR))
         {
             channel->trigger_write();
         }
-        else if (evi.filter == EVFILT_READ)
+
+        if (evi.events & (EPOLLIN | EPOLLERR))
         {
             // TODO: use `evi.data`
             channel->trigger_read();
         }
 
-        if (evi.flags & EV_EOF)
+        if (evi.events & EPOLLRDHUP)
         {
             // TODO: trigger_read_eof, RDHUP?
         }

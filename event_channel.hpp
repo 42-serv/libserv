@@ -13,16 +13,27 @@ namespace ft
         class event_channel
         {
         private:
+            ident_t ident;
             byte_buffer recv_buf;
             byte_buffer send_buf;
             // pipeline_head
             // pipeline_tail
             // local_address
             // remote_address
-            // closed
 
         public:
+            bool readability_interested;
+            bool writability_interested;
+            bool readability_enabled;
+            bool writability_enabled;
+            bool input_closed;
+            bool output_closed;
+
+        public:
+            event_channel(ident_t ident);
             virtual ~event_channel() {}
+
+            ident_t get_ident() const throw() { return this->ident; }
 
             void trigger_read() throw();
             void trigger_write() throw();

@@ -5,6 +5,11 @@
 
 #include "serv_types.hpp"
 
+ft::serv::event_channel::event_channel(ident_t ident)
+    : ident(ident), recv_buf(), send_buf(), readability_interested(), writability_interested(), readability_enabled(), writability_enabled(), input_closed(), output_closed()
+{
+}
+
 void ft::serv::event_channel::trigger_read() throw()
 {
 }

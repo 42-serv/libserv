@@ -14,6 +14,7 @@ namespace ft
         class event_handler_base
         {
         public:
+            event_handler_base() {}
             virtual ~event_handler_base() {}
 
             virtual void on_active(event_layer&) = 0;

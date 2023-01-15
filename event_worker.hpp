@@ -22,7 +22,8 @@ namespace ft
 
         private:
             ft::mutex lock;
-            ident_t boss_fd;
+            ident_t boss_ident;
+            ident_t event_ident;
             void* boss_list;
             channel_dictionary channels;
             task_list tasks;
@@ -33,8 +34,8 @@ namespace ft
 
             void add_channel(const ident_t ident, const ft::shared_ptr<event_channel>& channel);
             void remove_channel(const ident_t ident);
-            void watch_writability(const ident_t ident, const bool enable);
-            void offer_task(const ft::shared_ptr<task_base> task);
+            void watch_ability(event_channel& channel);
+            void offer_task(const ft::shared_ptr<task_base>& task);
             void loop();
             void wake_up();
 
