@@ -12,6 +12,7 @@
 #include <smart_ptr/shared_ptr.hpp>
 #include <thread/lock_guard.hpp>
 #include <thread/mutex.hpp>
+#include <thread/thread.hpp>
 
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
@@ -31,7 +32,6 @@ namespace ft
         typedef dynamic_array<struct ::epoll_event>::type event_list;
 
         static const event_list::size_type MAX_EVENTS = 4096;
-        static const ident_t WAKE_UP_IDENT = 0;
 
         static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel& channel)
         {
@@ -44,7 +44,7 @@ namespace ft
             {
                 flags |= EPOLLOUT;
             }
-            ident_t ident = channel.get_ident();
+            const ident_t ident = channel.get_ident();
             struct ::epoll_event change;
             change.events = flags;
             change.data.fd = ident;
@@ -59,7 +59,7 @@ namespace ft
 }
 
 ft::serv::event_worker::event_worker()
-    : lock(), boss_ident(::epoll_create1(EPOLL_CLOEXEC)), event_ident(0), boss_list(), channels(), tasks()
+    : lock(), boss_ident(::epoll_create1(EPOLL_CLOEXEC)), event_ident(0), boss_list(), channels(), tasks(), loop_thread()
 {
     try
     {
@@ -104,7 +104,7 @@ ft::serv::event_worker::~event_worker()
 
 void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_ptr<event_channel>& channel)
 {
-    // TODO: assert(this->is_in_event_loop());
+    assert(this->is_in_event_loop());
 
     const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
 
@@ -122,7 +122,7 @@ void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_p
 
 void ft::serv::event_worker::remove_channel(const ident_t ident)
 {
-    // TODO: assert(this->is_in_event_loop());
+    assert(this->is_in_event_loop());
 
     channel_dictionary::const_iterator it = this->channels.find(ident);
 
@@ -142,7 +142,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
 
 void ft::serv::event_worker::watch_ability(event_channel& channel)
 {
-    // TODO: assert(this->is_in_event_loop());
+    assert(this->is_in_event_loop());
 
     _epoll_operation(this->boss_ident, EPOLL_CTL_MOD, channel);
 }
@@ -207,18 +207,28 @@ void ft::serv::event_worker::loop()
     }
 }
 
+bool ft::serv::event_worker::is_in_event_loop()
+{
+    assert(this->loop_thread);
+
+    return ft::thread::self() == this->loop_thread;
+}
+
 void ft::serv::event_worker::wake_up()
 {
-    // TODO: if (this->is_in_event_loop()) return;
-
-    ::eventfd_t value = 1;
-    const int r = ::eventfd_write(this->event_ident, value);
-    // ignore errors
-    static_cast<void>(r);
+    if (!this->is_in_event_loop())
+    {
+        ::eventfd_t value = 1;
+        const int r = ::eventfd_write(this->event_ident, value);
+        // ignore errors
+        static_cast<void>(r);
+    }
 }
 
 void ft::serv::event_worker::process_events(void* list, int n) throw()
 {
+    this->loop_thread = ft::thread::self();
+
     event_list& events = *static_cast<event_list*>(list);
 
     for (int i = 0; i < n; i++)

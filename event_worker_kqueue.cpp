@@ -12,6 +12,7 @@
 #include <smart_ptr/shared_ptr.hpp>
 #include <thread/lock_guard.hpp>
 #include <thread/mutex.hpp>
+#include <thread/thread.hpp>
 
 #include <sys/event.h>
 #include <sys/socket.h>
@@ -34,7 +35,7 @@ namespace ft
 }
 
 ft::serv::event_worker::event_worker()
-    : lock(), boss_ident(::kqueue()), event_ident(0), boss_list(), channels(), tasks()
+    : lock(), boss_ident(::kqueue()), event_ident(0), boss_list(), channels(), tasks(), loop_thread()
 {
     if (this->boss_ident < 0)
     {
@@ -58,7 +59,7 @@ ft::serv::event_worker::~event_worker()
 
 void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_ptr<event_channel>& channel)
 {
-    // TODO: assert(this->is_in_event_loop());
+    assert(this->is_in_event_loop());
 
     const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
 
@@ -76,7 +77,7 @@ void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_p
 
 void ft::serv::event_worker::remove_channel(const ident_t ident)
 {
-    // TODO: assert(this->is_in_event_loop());
+    assert(this->is_in_event_loop());
 
     channel_dictionary::const_iterator it = this->channels.find(ident);
 
@@ -96,11 +97,12 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
 
 void ft::serv::event_worker::watch_ability(event_channel& channel)
 {
-    // TODO: assert(this->is_in_event_loop());
+    assert(this->is_in_event_loop());
 
     const int flags_add = EV_ADD | EV_ENABLE | EV_CLEAR;
     const int flags_del = EV_DELETE | EV_DISABLE;
 
+    const ident_t ident = channel.get_ident();
     event_list& changes = *static_cast<event_list*>(this->boss_list);
     struct ::kevent change[2];
     std::size_t count = 0;
@@ -132,6 +134,8 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
 
 void ft::serv::event_worker::loop()
 {
+    this->loop_thread = ft::thread::self();
+
     event_list events;
     event_list changes;
 
@@ -183,18 +187,26 @@ void ft::serv::event_worker::loop()
     }
 }
 
+bool ft::serv::event_worker::is_in_event_loop()
+{
+    assert(this->loop_thread);
+
+    return ft::thread::self() == this->loop_thread;
+}
+
 void ft::serv::event_worker::wake_up()
 {
-    // TODO: if (this->is_in_event_loop()) return;
-
-    struct ::kevent change[1];
-    EV_SET(&change[0], this->event_ident, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
-    if (::kevent(this->boss_ident, beginof(change), countof(change), null, 0, null) < 0)
+    if (!this->is_in_event_loop())
     {
-        const syscall_failed e;
-        if (e.error() != EINTR)
+        struct ::kevent change[1];
+        EV_SET(&change[0], this->event_ident, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
+        if (::kevent(this->boss_ident, beginof(change), countof(change), null, 0, null) < 0)
         {
-            throw e;
+            const syscall_failed e;
+            if (e.error() != EINTR)
+            {
+                throw e;
+            }
         }
     }
 }

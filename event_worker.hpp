@@ -27,6 +27,7 @@ namespace ft
             void* boss_list;
             channel_dictionary channels;
             task_list tasks;
+            ft::thread::id loop_thread;
 
         public:
             event_worker();
@@ -37,6 +38,7 @@ namespace ft
             void watch_ability(event_channel& channel);
             void offer_task(const ft::shared_ptr<task_base>& task);
             void loop();
+            bool is_in_event_loop();
             void wake_up();
 
         private:
