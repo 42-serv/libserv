@@ -4,20 +4,32 @@
 #pragma once
 
 #include "byte_buffer.hpp"
+#include "event_layer.hpp"
 #include "serv_types.hpp"
 
 namespace ft
 {
     namespace serv
     {
+        namespace _internal
+        {
+            class dummy_head_layer : public ft::serv::event_layer
+            {
+            };
+
+            class dummy_tail_layer : public ft::serv::event_layer
+            {
+            };
+        }
+
         class event_channel
         {
         private:
             ident_t ident;
             byte_buffer recv_buf;
             byte_buffer send_buf;
-            // pipeline_head
-            // pipeline_tail
+            _internal::dummy_head_layer pipeline_head;
+            _internal::dummy_tail_layer pipeline_tail;
             // local_address
             // remote_address
 

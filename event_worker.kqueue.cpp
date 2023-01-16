@@ -105,7 +105,7 @@ void ft::serv::event_worker::watch_ability(event_channel& channel)
     const ident_t ident = channel.get_ident();
     event_list& changes = *static_cast<event_list*>(this->boss_list);
     struct ::kevent change[2];
-    std::size_t count = 0;
+    event_list::size_type count = 0;
     if (channel.readability_enabled != channel.readability_interested)
     {
         EV_SET(&change[count++], ident, EVFILT_READ, channel.readability_interested ? flags_add : flags_del, 0, 0, null);
