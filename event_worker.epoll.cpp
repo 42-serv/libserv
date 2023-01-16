@@ -124,7 +124,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
 {
     assert(this->is_in_event_loop());
 
-    channel_dictionary::const_iterator it = this->channels.find(ident);
+    channel_dictionary::/*const_*/ iterator it = this->channels.find(ident);
 
     if (it != this->channels.end())
     {
@@ -132,7 +132,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
         channel->readability_interested = false;
         channel->writability_interested = false;
         _epoll_operation(this->boss_ident, EPOLL_CTL_DEL, *channel);
-        this->channels.erase(it);
+        this->channels.erase(it->first);
     }
     else
     {
@@ -199,7 +199,7 @@ void ft::serv::event_worker::loop()
         }
         this->execute_tasks();
 
-        if (n == events.size())
+        if (static_cast<event_list::size_type>(n) == events.size())
         {
             // double
             events.resize(n << 1);

@@ -79,7 +79,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
 {
     assert(this->is_in_event_loop());
 
-    channel_dictionary::const_iterator it = this->channels.find(ident);
+    channel_dictionary::/*const_*/ iterator it = this->channels.find(ident);
 
     if (it != this->channels.end())
     {

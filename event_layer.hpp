@@ -20,18 +20,21 @@ namespace ft
             ft::shared_ptr<event_handler_base> handler;
 
         public:
-            virtual void notify_active() = 0;
-            virtual void notify_read() = 0;
-            virtual void notify_write() = 0;
-            virtual void notify_error() = 0;
-            virtual void notify_inactive() = 0;
+            event_layer() {}
+            virtual ~event_layer() {}
 
-            virtual void post_bind() = 0;
-            virtual void post_connect() = 0;
-            virtual void post_read() = 0;
-            virtual void post_write() = 0;
-            virtual void post_flush() = 0;
-            virtual void post_disconnect() = 0;
+            virtual void notify_active() {}
+            virtual void notify_read() {}
+            virtual void notify_write() {}
+            virtual void notify_error() {}
+            virtual void notify_inactive() {}
+
+            virtual void post_bind() {}
+            virtual void post_connect() {}
+            virtual void post_read() {}
+            virtual void post_write() {}
+            virtual void post_flush() {}
+            virtual void post_disconnect() {}
 
         private:
             event_layer(const event_layer&);

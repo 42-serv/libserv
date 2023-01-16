@@ -1,0 +1,18 @@
+# MacOS Temporary files
+.DS_Store
+
+# Prerequisites
+*.d
+
+# Object files
+*.o
+
+# Precompiled Headers
+*.gch
+
+# Debug files
+*.dSYM/
+
+# Binary files
+*.a
+*.dylib

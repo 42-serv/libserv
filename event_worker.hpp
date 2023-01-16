@@ -9,6 +9,7 @@
 
 #include <smart_ptr/shared_ptr.hpp>
 #include <thread/mutex.hpp>
+#include <thread/thread.hpp>
 
 namespace ft
 {
