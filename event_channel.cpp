@@ -3,6 +3,7 @@
 
 #include "event_channel.hpp"
 
+#include "event_worker.hpp"
 #include "serv_types.hpp"
 
 ft::serv::event_channel::event_channel(ident_t ident)

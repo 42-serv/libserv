@@ -26,7 +26,7 @@ namespace ft
     class name : public ft::serv::task_base \
     {                                       \
     public:                                 \
-        void run() throw()                  \
+        inline void run() throw()           \
         {                                   \
             expr;                           \
         }                                   \
@@ -44,7 +44,7 @@ namespace ft
         {                                         \
         }                                         \
                                                   \
-        void run() throw()                        \
+        inline void run() throw()                 \
         {                                         \
             expr;                                 \
         }                                         \
@@ -63,7 +63,7 @@ namespace ft
         {                                                 \
         }                                                 \
                                                           \
-        void run() throw()                                \
+        inline void run() throw()                         \
         {                                                 \
             expr;                                         \
         }                                                 \
@@ -83,7 +83,7 @@ namespace ft
         {                                                         \
         }                                                         \
                                                                   \
-        void run() throw()                                        \
+        inline void run() throw()                                 \
         {                                                         \
             expr;                                                 \
         }                                                         \
@@ -104,7 +104,7 @@ namespace ft
         {                                                                 \
         }                                                                 \
                                                                           \
-        void run() throw()                                                \
+        inline void run() throw()                                         \
         {                                                                 \
             expr;                                                         \
         }                                                                 \
@@ -126,7 +126,7 @@ namespace ft
         {                                                                          \
         }                                                                          \
                                                                                    \
-        void run() throw()                                                         \
+        inline void run() throw()                                                  \
         {                                                                          \
             expr;                                                                  \
         }                                                                          \
@@ -149,7 +149,7 @@ namespace ft
         {                                                                                        \
         }                                                                                        \
                                                                                                  \
-        void run() throw()                                                                       \
+        inline void run() throw()                                                                \
         {                                                                                        \
             expr;                                                                                \
         }                                                                                        \
@@ -173,7 +173,7 @@ namespace ft
         {                                                                                                      \
         }                                                                                                      \
                                                                                                                \
-        void run() throw()                                                                                     \
+        inline void run() throw()                                                                              \
         {                                                                                                      \
             expr;                                                                                              \
         }                                                                                                      \
@@ -198,7 +198,7 @@ namespace ft
         {                                                                                                                    \
         }                                                                                                                    \
                                                                                                                              \
-        void run() throw()                                                                                                   \
+        inline void run() throw()                                                                                            \
         {                                                                                                                    \
             expr;                                                                                                            \
         }                                                                                                                    \
@@ -224,7 +224,7 @@ namespace ft
         {                                                                                                                                  \
         }                                                                                                                                  \
                                                                                                                                            \
-        void run() throw()                                                                                                                 \
+        inline void run() throw()                                                                                                          \
         {                                                                                                                                  \
             expr;                                                                                                                          \
         }                                                                                                                                  \

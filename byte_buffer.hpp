@@ -22,34 +22,34 @@ namespace ft
 
         private:
             container_type buffer;
+            size_type position;
 
         public:
-            inline byte_buffer() : buffer() {}
+            inline byte_buffer() : buffer(), position() {}
 
             inline const byte_t* raw_get() const throw()
             {
-                return &this->buffer.front();
+                return &this->buffer[this->position];
             }
 
             inline size_type raw_size() const throw()
             {
-                return this->buffer.size();
+                assert(this->buffer.size() >= this->position);
+
+                return this->buffer.size() - this->position;
             }
 
             inline void raw_put(const void* const data, const size_type size)
             {
                 const byte_t* const array = reinterpret_cast<const byte_t*>(data);
-                this->buffer.insert(this->buffer.end(), &array[size_type()], &array[size]);
+                this->buffer.insert(this->buffer.end(), beginof(array), &array[size]);
             }
 
             inline void remove(const size_type size)
             {
                 assert(this->raw_size() >= size);
 
-                const iterator begin = this->buffer.begin();
-                const iterator end = begin + size;
-                // consider devector
-                this->buffer.erase(begin, end);
+                this->position += size;
             }
 
             template <typename T>

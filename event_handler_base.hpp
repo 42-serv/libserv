@@ -17,11 +17,10 @@ namespace ft
             event_handler_base() {}
             virtual ~event_handler_base() {}
 
-            virtual void on_active(event_layer&) = 0;
-            virtual void on_read(event_layer&) = 0;
-            virtual void on_write(event_layer&) = 0;
-            virtual void on_error(event_layer&) = 0;
-            virtual void on_inactive(event_layer&) = 0;
+            virtual void on_active(event_layer&) {}
+            virtual void on_read(event_layer&) {}
+            virtual void on_error(event_layer&) {}
+            virtual void on_inactive(event_layer&) {}
 
         private:
             event_handler_base(const event_handler_base&);

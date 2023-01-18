@@ -7,6 +7,8 @@
 #include "event_layer.hpp"
 #include "serv_types.hpp"
 
+#include <smart_ptr/weak_ptr.hpp>
+
 namespace ft
 {
     namespace serv
@@ -22,6 +24,8 @@ namespace ft
             };
         }
 
+        class event_worker;
+
         class event_channel
         {
         private:
@@ -32,6 +36,7 @@ namespace ft
             _internal::dummy_tail_layer pipeline_tail;
             // local_address
             // remote_address
+            ft::weak_ptr<event_worker> loop;
 
         public:
             bool readability_interested;
