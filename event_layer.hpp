@@ -8,27 +8,32 @@
 
 #include <smart_ptr/shared_ptr.hpp>
 
+#include <exception>
+
 namespace ft
 {
     namespace serv
     {
+        class event_channel;
+
         class event_layer
         {
         private:
+            event_channel& channel;
             event_layer* next;
             event_layer* prev;
             ft::shared_ptr<event_handler_base> handler;
 
         public:
-            event_layer(event_layer* next, event_layer* prev, const ft::shared_ptr<event_handler_base>& handler);
+            event_layer(event_channel& channel, event_layer* next, event_layer* prev, const ft::shared_ptr<event_handler_base>& handler);
             virtual ~event_layer();
 
             virtual void notify_active();
-            virtual void notify_read();
-            virtual void notify_error();
+            virtual void notify_read(void*);
+            virtual void notify_error(const std::exception&);
             virtual void notify_inactive();
 
-            virtual void post_write();
+            virtual void post_write(void*);
             virtual void post_flush();
             virtual void post_disconnect();
 
