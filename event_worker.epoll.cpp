@@ -3,7 +3,7 @@
 
 #include "event_worker.hpp"
 
-#include "event_channel.hpp"
+#include "event_channel_base.hpp"
 #include "logger.hpp"
 #include "serv_exception.hpp"
 #include "serv_types.hpp"
@@ -33,7 +33,7 @@ namespace ft
 
         static const event_list::size_type MAX_EVENTS = 4096;
 
-        static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel& channel)
+        static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel_base& channel)
         {
             int flags = 0;
             if (channel.readability_interested)
@@ -102,7 +102,7 @@ ft::serv::event_worker::~event_worker()
     close_socket(this->event_ident);
 }
 
-void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_ptr<event_channel>& channel)
+void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_ptr<event_channel_base>& channel)
 {
     assert(this->is_in_event_loop());
 
@@ -128,7 +128,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
 
     if (it != this->channels.end())
     {
-        const ft::shared_ptr<event_channel>& channel = it->second;
+        const ft::shared_ptr<event_channel_base>& channel = it->second;
         channel->readability_interested = false;
         channel->writability_interested = false;
         _epoll_operation(this->boss_ident, EPOLL_CTL_DEL, *channel);
@@ -140,7 +140,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
     }
 }
 
-void ft::serv::event_worker::watch_ability(event_channel& channel)
+void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 {
     assert(this->is_in_event_loop());
 
@@ -255,7 +255,7 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
             static_cast<void>(r);
             continue;
         }
-        const ft::shared_ptr<event_channel>& channel = it_channel->second;
+        const ft::shared_ptr<event_channel_base>& channel = it_channel->second;
 
         if (evi.events & (EPOLLOUT | EPOLLERR))
         {

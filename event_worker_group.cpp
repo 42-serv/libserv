@@ -1,6 +1,6 @@
 #include "event_worker_group.hpp"
 
-#include "event_channel.hpp"
+#include "event_channel_base.hpp"
 #include "event_worker.hpp"
 #include "serv_types.hpp"
 

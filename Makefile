@@ -14,7 +14,7 @@ TARGET = libserv.a
 OBJECTS_DIR = objs/
 
 SOURCES += \
-	event_channel.cpp \
+	event_channel_base.cpp \
 	event_handler_base.cpp \
 	event_layer.cpp \
 	event_worker_group.cpp \

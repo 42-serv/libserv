@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "event_channel.hpp"
+#include "event_channel_base.hpp"
 #include "serv_types.hpp"
 #include "task_base.hpp"
 
@@ -18,7 +18,7 @@ namespace ft
         class event_worker
         {
         public:
-            typedef fast_dictionary<ident_t, ft::shared_ptr<event_channel> >::type channel_dictionary;
+            typedef fast_dictionary<ident_t, ft::shared_ptr<event_channel_base> >::type channel_dictionary;
             typedef dynamic_array<ft::shared_ptr<task_base> >::type task_list;
 
         private:
@@ -34,9 +34,9 @@ namespace ft
             event_worker();
             virtual ~event_worker();
 
-            void add_channel(const ident_t ident, const ft::shared_ptr<event_channel>& channel);
+            void add_channel(const ident_t ident, const ft::shared_ptr<event_channel_base>& channel);
             void remove_channel(const ident_t ident);
-            void watch_ability(event_channel& channel);
+            void watch_ability(event_channel_base& channel);
             void offer_task(const ft::shared_ptr<task_base>& task);
             void loop();
             bool is_in_event_loop();

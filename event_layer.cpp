@@ -3,7 +3,7 @@
 
 #include "event_layer.hpp"
 
-#include "event_channel.hpp"
+#include "event_channel_base.hpp"
 #include "event_handler_base.hpp"
 #include "serv_types.hpp"
 
@@ -11,7 +11,7 @@
 
 #include <exception>
 
-ft::serv::event_layer::event_layer(event_channel& channel, event_layer* next, event_layer* prev, const ft::shared_ptr<event_handler_base>& handler)
+ft::serv::event_layer::event_layer(event_channel_base& channel, event_layer* next, event_layer* prev, const ft::shared_ptr<event_handler_base>& handler)
     : channel(channel), next(next), prev(prev), handler(handler) {}
 
 ft::serv::event_layer::~event_layer() {}

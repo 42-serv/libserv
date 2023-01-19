@@ -26,7 +26,7 @@ namespace ft
 
         class event_worker;
 
-        class event_channel
+        class event_channel_base
         {
         private:
             ident_t ident;
@@ -47,8 +47,8 @@ namespace ft
             bool output_closed;
 
         public:
-            event_channel(ident_t ident);
-            virtual ~event_channel() {}
+            event_channel_base(ident_t ident);
+            virtual ~event_channel_base() {}
 
             ident_t get_ident() const throw() { return this->ident; }
 
@@ -56,8 +56,8 @@ namespace ft
             void trigger_write() throw();
 
         private:
-            event_channel(const event_channel&);
-            event_channel& operator=(const event_channel&);
+            event_channel_base(const event_channel_base&);
+            event_channel_base& operator=(const event_channel_base&);
         };
     }
 }
