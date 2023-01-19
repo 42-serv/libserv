@@ -26,41 +26,52 @@ namespace ft
 
         public:
             inline byte_buffer() : buffer(), position() {}
+            inline byte_buffer(size_type length) : buffer(length), position() {}
 
-            inline const byte_t* raw_get() const throw()
+            inline byte_t* raw_buffer() throw()
+            {
+                return this->buffer.data();
+            }
+
+            inline size_type raw_length() const throw()
+            {
+                return this->buffer.size();
+            }
+
+            inline void raw_shrink(size_type length)
+            {
+                assert(length <= this->raw_length());
+
+                this->buffer.resize(length);
+            }
+
+            inline const byte_t* get() const throw()
             {
                 return &this->buffer[this->position];
             }
 
-            inline size_type raw_size() const throw()
+            template <typename T>
+            inline T get(const size_type offset = size_type()) const
+            {
+                assert(this->size() >= offset + sizeof(T));
+
+                // Copy elision
+                T t;
+                std::memcpy(&t, this->get() + offset, sizeof(t));
+                return t;
+            }
+
+            inline size_type size() const throw()
             {
                 assert(this->buffer.size() >= this->position);
 
                 return this->buffer.size() - this->position;
             }
 
-            inline void raw_put(const void* const data, const size_type size)
+            inline void put(const void* const data, const size_type size)
             {
                 const byte_t* const array = reinterpret_cast<const byte_t*>(data);
                 this->buffer.insert(this->buffer.end(), beginof(array), &array[size]);
-            }
-
-            inline void remove(const size_type size)
-            {
-                assert(this->raw_size() >= size);
-
-                this->position += size;
-            }
-
-            template <typename T>
-            inline T get(const size_type offset = size_type()) const
-            {
-                assert(this->raw_size() >= offset + sizeof(T));
-
-                // Copy elision
-                T t;
-                std::memcpy(&t, this->raw_get() + offset, sizeof(t));
-                return t;
             }
 
             template <typename T>
@@ -68,7 +79,14 @@ namespace ft
             {
                 byte_t data[sizeof(t)];
                 std::memcpy(&data, &t, sizeof(t));
-                this->raw_put(data, sizeof(t));
+                this->put(data, sizeof(t));
+            }
+
+            inline void remove(const size_type size)
+            {
+                assert(this->size() >= size);
+
+                this->position += size;
             }
 
         private:
