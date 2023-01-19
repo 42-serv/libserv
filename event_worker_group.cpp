@@ -1,3 +1,6 @@
+/* Any copyright is dedicated to the Public Domain.
+ * https://creativecommons.org/publicdomain/zero/1.0/ */
+
 #include "event_worker_group.hpp"
 
 #include "event_channel_base.hpp"
@@ -9,9 +12,15 @@
 #include <thread/mutex.hpp>
 
 ft::serv::event_worker_group::event_worker_group()
-    : lock(), index(), loops() {}
+    : lock(),
+      index(),
+      loops()
+{
+}
 
-ft::serv::event_worker_group::~event_worker_group() {}
+ft::serv::event_worker_group::~event_worker_group()
+{
+}
 
 void ft::serv::event_worker_group::put_worker(const ft::shared_ptr<event_worker>& worker)
 {

@@ -35,7 +35,13 @@ namespace ft
 }
 
 ft::serv::event_worker::event_worker()
-    : lock(), boss_ident(::kqueue()), event_ident(0), boss_list(), channels(), tasks(), loop_thread()
+    : lock(),
+      boss_ident(::kqueue()),
+      event_ident(0),
+      boss_list(),
+      channels(),
+      tasks(),
+      loop_thread()
 {
     if (this->boss_ident < 0)
     {

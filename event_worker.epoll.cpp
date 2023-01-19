@@ -59,7 +59,13 @@ namespace ft
 }
 
 ft::serv::event_worker::event_worker()
-    : lock(), boss_ident(::epoll_create1(EPOLL_CLOEXEC)), event_ident(0), boss_list(), channels(), tasks(), loop_thread()
+    : lock(),
+      boss_ident(::epoll_create1(EPOLL_CLOEXEC)),
+      event_ident(0),
+      boss_list(),
+      channels(),
+      tasks(),
+      loop_thread()
 {
     try
     {

@@ -7,7 +7,19 @@
 #include "serv_types.hpp"
 
 ft::serv::event_channel_base::event_channel_base(ident_t ident)
-    : ident(ident), recv_buf(), send_buf(), readability_interested(), writability_interested(), readability_enabled(), writability_enabled(), input_closed(), output_closed()
+    : ident(ident),
+      recv_buf(),
+      send_buf(),
+      readability_interested(),
+      writability_interested(),
+      readability_enabled(),
+      writability_enabled(),
+      input_closed(),
+      output_closed()
+{
+}
+
+ft::serv::event_channel_base::~event_channel_base()
 {
 }
 

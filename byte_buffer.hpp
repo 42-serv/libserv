@@ -25,8 +25,17 @@ namespace ft
             size_type position;
 
         public:
-            inline byte_buffer() : buffer(), position() {}
-            inline byte_buffer(size_type length) : buffer(length), position() {}
+            inline byte_buffer()
+                : buffer(),
+                  position()
+            {
+            }
+
+            inline byte_buffer(size_type length)
+                : buffer(length),
+                  position()
+            {
+            }
 
             inline byte_t* raw_buffer() throw()
             {

@@ -10,8 +10,8 @@ namespace ft
         class task_base
         {
         public:
-            task_base() {}
-            virtual ~task_base() {}
+            task_base();
+            virtual ~task_base();
 
             virtual void run() throw() = 0;
 

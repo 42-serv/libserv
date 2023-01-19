@@ -6,9 +6,13 @@
 #include "event_layer.hpp"
 #include "serv_types.hpp"
 
-ft::serv::event_handler_base::event_handler_base() {}
+ft::serv::event_handler_base::event_handler_base()
+{
+}
 
-ft::serv::event_handler_base::~event_handler_base() {}
+ft::serv::event_handler_base::~event_handler_base()
+{
+}
 
 void ft::serv::event_handler_base::on_active(event_layer& next)
 {

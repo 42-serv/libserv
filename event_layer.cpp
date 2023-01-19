@@ -12,9 +12,16 @@
 #include <exception>
 
 ft::serv::event_layer::event_layer(event_channel_base& channel, event_layer* next, event_layer* prev, const ft::shared_ptr<event_handler_base>& handler)
-    : channel(channel), next(next), prev(prev), handler(handler) {}
+    : channel(channel),
+      next(next),
+      prev(prev),
+      handler(handler)
+{
+}
 
-ft::serv::event_layer::~event_layer() {}
+ft::serv::event_layer::~event_layer()
+{
+}
 
 // TODO: invoke
 

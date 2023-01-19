@@ -48,7 +48,7 @@ namespace ft
 
         public:
             event_channel_base(ident_t ident);
-            virtual ~event_channel_base() {}
+            virtual ~event_channel_base();
 
             ident_t get_ident() const throw() { return this->ident; }
 
