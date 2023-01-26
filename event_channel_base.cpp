@@ -32,17 +32,17 @@ public:
     void on_write(ft::serv::event_layer& layer, ft::shared_ptr<const void> arg)
     {
         ft::shared_ptr<const ft::serv::byte_buffer> buffer = ft::static_pointer_cast<const ft::serv::byte_buffer>(arg);
-        this->channel.do_write(*buffer);
+        this->channel.on_write(*buffer);
     }
 
     void on_flush(ft::serv::event_layer& layer)
     {
-        this->channel.do_flush();
+        this->channel.on_flush();
     }
 
     void on_disconnect(ft::serv::event_layer& layer)
     {
-        this->channel.do_disconnect();
+        this->channel.on_disconnect();
     }
 
     void on_deregister(ft::serv::event_layer& layer)
@@ -114,6 +114,11 @@ ft::serv::event_channel_base::~event_channel_base()
 {
 }
 
+ft::serv::ident_t ft::serv::event_channel_base::get_ident() const throw()
+{
+    return this->ident;
+}
+
 ft::serv::event_worker* ft::serv::event_channel_base::get_loop() const
 {
     if (!this->loop)
@@ -142,6 +147,20 @@ void ft::serv::event_channel_base::trigger_write() throw()
 {
 }
 
+void ft::serv::event_channel_base::do_register(const ft::shared_ptr<event_channel_base>& self)
+{
+    assert(self.get() == this);
+
+    this->pipeline_tail->post_register(self);
+    this->pipeline_head->notify_active();
+}
+
+void ft::serv::event_channel_base::do_deregister()
+{
+    this->pipeline_head->notify_inactive();
+    this->pipeline_tail->post_deregister();
+}
+
 void ft::serv::event_channel_base::add_first_handler(const ft::shared_ptr<event_handler_base>& handler)
 {
     ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
@@ -154,30 +173,18 @@ void ft::serv::event_channel_base::add_last_handler(const ft::shared_ptr<event_h
     this->pipeline_tail->set_prev(layer);
 }
 
+void ft::serv::event_channel_base::on_write(const ft::serv::byte_buffer&)
+{
+}
+
+void ft::serv::event_channel_base::on_flush()
+{
+}
+
+void ft::serv::event_channel_base::on_disconnect()
+{
+}
+
 void ft::serv::event_channel_base::begin_read()
-{
-}
-
-void ft::serv::event_channel_base::do_register(const ft::shared_ptr<event_channel_base>& self)
-{
-    assert(self.get() == this);
-
-    this->pipeline_tail->post_register(self);
-}
-
-void ft::serv::event_channel_base::do_write(const ft::serv::byte_buffer&)
-{
-}
-
-void ft::serv::event_channel_base::do_flush()
-{
-}
-
-void ft::serv::event_channel_base::do_disconnect()
-{
-    this->pipeline_tail->post_deregister();
-}
-
-void ft::serv::event_channel_base::do_deregister()
 {
 }

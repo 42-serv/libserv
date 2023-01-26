@@ -41,7 +41,7 @@ namespace ft
             event_channel_base(ident_t ident);
             virtual ~event_channel_base();
 
-            ident_t get_ident() const throw() { return this->ident; }
+            ident_t get_ident() const throw();
 
             event_worker* get_loop() const;
             void set_loop(event_worker*);
@@ -49,16 +49,18 @@ namespace ft
             void trigger_read() throw();
             void trigger_write() throw();
 
+            void do_register(const ft::shared_ptr<event_channel_base>&);
+            void do_deregister();
+
             void add_first_handler(const ft::shared_ptr<event_handler_base>&);
             void add_last_handler(const ft::shared_ptr<event_handler_base>&);
 
-            virtual void begin_read();
+            void on_write(const ft::serv::byte_buffer&);
+            void on_flush();
+            void on_disconnect();
 
-            void do_register(const ft::shared_ptr<event_channel_base>&);
-            void do_write(const ft::serv::byte_buffer&);
-            void do_flush();
-            void do_disconnect();
-            void do_deregister();
+        protected:
+            virtual void begin_read();
 
         private:
             event_channel_base(const event_channel_base&);
