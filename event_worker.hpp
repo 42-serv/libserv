@@ -34,7 +34,7 @@ namespace ft
             event_worker();
             virtual ~event_worker();
 
-            void add_channel(const ident_t ident, const ft::shared_ptr<event_channel_base>& channel);
+            void add_channel(const ft::shared_ptr<event_channel_base>& channel);
             void remove_channel(const ident_t ident);
             void watch_ability(event_channel_base& channel);
             void offer_task(const ft::shared_ptr<task_base>& task);

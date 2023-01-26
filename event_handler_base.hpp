@@ -5,6 +5,8 @@
 
 #include "serv_types.hpp"
 
+#include <smart_ptr/shared_ptr.hpp>
+
 #include <exception>
 
 namespace ft
@@ -19,14 +21,17 @@ namespace ft
             event_handler_base();
             virtual ~event_handler_base();
 
-            virtual void on_active(event_layer& next);
-            virtual void on_read(event_layer& next, void* arg);
-            virtual void on_error(event_layer& next, const std::exception& e);
-            virtual void on_inactive(event_layer& next);
+            virtual void on_active(event_layer& layer);
+            virtual void on_read(event_layer& layer, ft::shared_ptr<void>);
+            virtual void on_read_complete(event_layer& layer);
+            virtual void on_error(event_layer& layer, ft::shared_ptr<const std::exception>);
+            virtual void on_inactive(event_layer& layer);
 
-            virtual void on_write(event_layer& prev, void* arg);
-            virtual void on_flush(event_layer& prev);
-            virtual void on_disconnect(event_layer& prev);
+            virtual void on_register(event_layer& layer, ft::shared_ptr<void>);
+            virtual void on_write(event_layer& layer, ft::shared_ptr<const void>);
+            virtual void on_flush(event_layer& layer);
+            virtual void on_disconnect(event_layer& layer);
+            virtual void on_deregister(event_layer& layer);
 
         private:
             event_handler_base(const event_handler_base&);

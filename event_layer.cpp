@@ -5,16 +5,20 @@
 
 #include "event_channel_base.hpp"
 #include "event_handler_base.hpp"
+#include "event_worker.hpp"
 #include "serv_types.hpp"
+#include "task_base.hpp"
 
+#include <smart_ptr/make_shared.hpp>
 #include <smart_ptr/shared_ptr.hpp>
+#include <smart_ptr/weak_ptr.hpp>
 
 #include <exception>
 
-ft::serv::event_layer::event_layer(event_channel_base& channel, event_layer* next, event_layer* prev, const ft::shared_ptr<event_handler_base>& handler)
+ft::serv::event_layer::event_layer(event_channel_base& channel, const ft::shared_ptr<event_handler_base>& handler)
     : channel(channel),
-      next(next),
-      prev(prev),
+      next(),
+      prev(),
       handler(handler)
 {
 }
@@ -23,39 +27,292 @@ ft::serv::event_layer::~event_layer()
 {
 }
 
-// TODO: invoke
+void ft::serv::event_layer::set_next(const ft::shared_ptr<event_layer>& next)
+{
+    if (this->next)
+    {
+        next->next = this->next;
+        next->prev = this->next->prev;
+        this->next->prev = next;
+    }
+    this->next = next;
+}
+
+void ft::serv::event_layer::set_prev(const ft::shared_ptr<event_layer>& prev)
+{
+    if (!this->prev.expired())
+    {
+        ft::shared_ptr<event_layer> prev_old = this->prev.lock();
+        prev->prev = prev_old;
+        prev->next = prev_old->next;
+        prev_old->next = prev;
+    }
+    this->prev = prev;
+}
+
+void ft::serv::event_layer::on_active()
+{
+    this->handler->on_active(*this);
+}
+
+void ft::serv::event_layer::on_read(ft::shared_ptr<void> arg)
+{
+    this->handler->on_read(*this, arg);
+}
+
+void ft::serv::event_layer::on_read_complete()
+{
+    this->handler->on_read_complete(*this);
+}
+
+void ft::serv::event_layer::on_error(ft::shared_ptr<const std::exception> e)
+{
+    this->handler->on_error(*this, e);
+}
+
+void ft::serv::event_layer::on_inactive()
+{
+    this->handler->on_inactive(*this);
+}
+
+void ft::serv::event_layer::do_register(ft::shared_ptr<void> arg)
+{
+    this->handler->on_register(*this, arg);
+}
+
+void ft::serv::event_layer::do_write(ft::shared_ptr<const void> arg)
+{
+    this->handler->on_write(*this, arg);
+}
+
+void ft::serv::event_layer::do_flush()
+{
+    this->handler->on_flush(*this);
+}
+
+void ft::serv::event_layer::do_disconnect()
+{
+    this->handler->on_disconnect(*this);
+}
+
+void ft::serv::event_layer::do_deregister()
+{
+    this->handler->on_deregister(*this);
+}
+
+typedef void (ft::serv::event_layer::*member_function_pointer)(void);
+FT_SERV_DEFINE_TASK_2(event_layer_task,
+                      ft::serv::event_layer&, self,
+                      member_function_pointer, fn,
+                      (self.*fn)());
+
+typedef void (ft::serv::event_layer::*member_function_pointer_pv)(ft::shared_ptr<void>);
+FT_SERV_DEFINE_TASK_3(event_layer_task_pv,
+                      ft::serv::event_layer&, self,
+                      member_function_pointer_pv, fn,
+                      ft::shared_ptr<void>, pv,
+                      (self.*fn)(pv));
+
+typedef void (ft::serv::event_layer::*member_function_pointer_pcv)(ft::shared_ptr<const void>);
+FT_SERV_DEFINE_TASK_3(event_layer_task_pcv,
+                      ft::serv::event_layer&, self,
+                      member_function_pointer_pcv, fn,
+                      ft::shared_ptr<const void>, pcv,
+                      (self.*fn)(pcv));
+
+typedef void (ft::serv::event_layer::*member_function_pointer_e)(ft::shared_ptr<const std::exception>);
+FT_SERV_DEFINE_TASK_3(event_layer_task_e,
+                      ft::serv::event_layer&, self,
+                      member_function_pointer_e, fn,
+                      ft::shared_ptr<const std::exception>, e,
+                      (self.*fn)(e));
+
+void ft::serv::event_layer::invoke_on_active()
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->on_active();
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::on_active));
+    }
+}
+
+void ft::serv::event_layer::invoke_on_read(ft::shared_ptr<void> arg)
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->on_read(arg);
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task_pv>(*this, &ft::serv::event_layer::on_read, arg));
+    }
+}
+
+void ft::serv::event_layer::invoke_on_read_complete()
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->on_read_complete();
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::on_read_complete));
+    }
+}
+
+void ft::serv::event_layer::invoke_on_error(ft::shared_ptr<const std::exception> e)
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->on_error(e);
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task_e>(*this, &ft::serv::event_layer::on_error, e));
+    }
+}
+
+void ft::serv::event_layer::invoke_on_inactive()
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->on_inactive();
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::on_inactive));
+    }
+}
+
+void ft::serv::event_layer::invoke_do_register(ft::shared_ptr<void> arg)
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->do_register(arg);
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task_pv>(*this, &ft::serv::event_layer::do_register, arg));
+    }
+}
+
+void ft::serv::event_layer::invoke_do_write(ft::shared_ptr<const void> arg)
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->do_write(arg);
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task_pcv>(*this, &ft::serv::event_layer::do_write, arg));
+    }
+}
+
+void ft::serv::event_layer::invoke_do_flush()
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->do_flush();
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::do_flush));
+    }
+}
+
+void ft::serv::event_layer::invoke_do_disconnect()
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->do_disconnect();
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::do_disconnect));
+    }
+}
+
+void ft::serv::event_layer::invoke_do_deregister()
+{
+    event_worker* loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->do_deregister();
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::do_deregister));
+    }
+}
 
 void ft::serv::event_layer::notify_active()
 {
-    this->handler->on_active(*this->next);
+    this->next->invoke_on_active();
 }
 
-void ft::serv::event_layer::notify_read(void* arg)
+void ft::serv::event_layer::notify_read(ft::shared_ptr<void> arg)
 {
-    this->handler->on_read(*this->next, arg);
+    this->next->invoke_on_read(arg);
 }
 
-void ft::serv::event_layer::notify_error(const std::exception& e)
+void ft::serv::event_layer::notify_read_complete()
 {
-    this->handler->on_error(*this->next, e);
+    this->next->invoke_on_read_complete();
+}
+
+void ft::serv::event_layer::notify_error(ft::shared_ptr<const std::exception> e)
+{
+    this->next->invoke_on_error(e);
 }
 
 void ft::serv::event_layer::notify_inactive()
 {
-    this->handler->on_inactive(*this->next);
+    this->next->invoke_on_inactive();
 }
 
-void ft::serv::event_layer::post_write(void* arg)
+void ft::serv::event_layer::post_register(ft::shared_ptr<void> arg)
 {
-    this->handler->on_write(*this->prev, arg);
+    this->prev.lock()->invoke_do_register(arg);
+}
+
+void ft::serv::event_layer::post_write(ft::shared_ptr<const void> arg)
+{
+    this->prev.lock()->invoke_do_write(arg);
 }
 
 void ft::serv::event_layer::post_flush()
 {
-    this->handler->on_flush(*this->prev);
+    this->prev.lock()->invoke_do_flush();
 }
 
 void ft::serv::event_layer::post_disconnect()
 {
-    this->handler->on_disconnect(*this->prev);
+    this->prev.lock()->invoke_do_disconnect();
+}
+
+void ft::serv::event_layer::post_deregister()
+{
+    this->prev.lock()->invoke_do_deregister();
 }

@@ -63,22 +63,18 @@ ft::serv::event_worker::~event_worker()
     close_socket(this->boss_ident);
 }
 
-void ft::serv::event_worker::add_channel(const ident_t ident, const ft::shared_ptr<event_channel_base>& channel)
+void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base>& channel)
 {
     assert(this->is_in_event_loop());
 
-    const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
+    const ident_t ident = channel->get_ident();
 
-    if (success)
-    {
-        channel->readability_interested = true;
-        channel->writability_interested = true;
-        this->watch_ability(*channel);
-    }
-    else
-    {
-        // TODO: reject
-    }
+    const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
+    assert(success);
+
+    channel->readability_interested = true;
+    channel->writability_interested = true;
+    this->watch_ability(*channel);
 }
 
 void ft::serv::event_worker::remove_channel(const ident_t ident)
@@ -131,6 +127,7 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
     try
     {
         this->tasks.push_back(task);
+        this->wake_up();
     }
     catch (const std::exception& e)
     {
@@ -140,6 +137,7 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
 
 void ft::serv::event_worker::loop()
 {
+    // NOTE: 비원자적 연산. loop_thread 설정 전에 offer_task 하는 경우에 문제 발생함.
     this->loop_thread = ft::thread::self();
 
     event_list events;
@@ -181,7 +179,6 @@ void ft::serv::event_worker::loop()
         if (n != 0)
         {
             this->process_events(&events, n);
-            events.clear();
         }
         this->execute_tasks();
 
@@ -269,8 +266,7 @@ void ft::serv::event_worker::execute_tasks() throw()
     task_list snapshot;
     {
         const ft::lock_guard<ft::mutex> lock(this->lock);
-        snapshot = this->tasks;
-        this->tasks.clear();
+        this->tasks.swap(snapshot);
     }
 
     for (task_list::iterator it = snapshot.begin(); it != snapshot.end(); ++it)
