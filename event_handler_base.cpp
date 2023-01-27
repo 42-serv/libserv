@@ -30,6 +30,7 @@ void ft::serv::event_handler_base::on_read(event_layer& layer, ft::shared_ptr<vo
 
 void ft::serv::event_handler_base::on_read_complete(event_layer& layer)
 {
+    layer.notify_read_complete();
 }
 
 void ft::serv::event_handler_base::on_error(event_layer& layer, ft::shared_ptr<const std::exception> e)

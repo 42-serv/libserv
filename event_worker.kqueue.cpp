@@ -122,6 +122,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
         channel.writability_enabled = channel.writability_interested;
     }
     changes.insert(changes.end(), beginof(change), &change[count]);
+    this->wake_up();
 }
 
 void ft::serv::event_worker::loop()
@@ -171,7 +172,7 @@ void ft::serv::event_worker::loop()
         }
         this->execute_tasks();
 
-        if (n == events.size())
+        if (static_cast<event_list::size_type>(n) == events.size())
         {
             // double
             events.resize(n << 1);

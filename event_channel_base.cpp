@@ -23,6 +23,8 @@ public:
 
     void on_register(ft::serv::event_layer& layer, ft::shared_ptr<void> arg)
     {
+        static_cast<void>(layer);
+
         ft::shared_ptr<ft::serv::event_channel_base> channel = ft::static_pointer_cast<ft::serv::event_channel_base>(arg);
         assert(this->channel.get_ident() == channel->get_ident());
 
@@ -31,22 +33,30 @@ public:
 
     void on_write(ft::serv::event_layer& layer, ft::shared_ptr<const void> arg)
     {
+        static_cast<void>(layer);
+
         ft::shared_ptr<const ft::serv::byte_buffer> buffer = ft::static_pointer_cast<const ft::serv::byte_buffer>(arg);
         this->channel.on_write(*buffer);
     }
 
     void on_flush(ft::serv::event_layer& layer)
     {
+        static_cast<void>(layer);
+
         this->channel.on_flush();
     }
 
     void on_disconnect(ft::serv::event_layer& layer)
     {
+        static_cast<void>(layer);
+
         this->channel.on_disconnect();
     }
 
     void on_deregister(ft::serv::event_layer& layer)
     {
+        static_cast<void>(layer);
+
         this->channel.get_loop()->remove_channel(this->channel.get_ident());
     }
 
@@ -63,26 +73,31 @@ public:
 
     void on_active(ft::serv::event_layer& layer)
     {
+        static_cast<void>(layer);
         throw std::runtime_error("unhandled on_active");
     }
 
     void on_read(ft::serv::event_layer& layer, ft::shared_ptr<void> arg)
     {
+        static_cast<void>(layer), static_cast<void>(arg);
         throw std::runtime_error("unhandled on_read");
     }
 
     void on_read_complete(ft::serv::event_layer& layer)
     {
+        static_cast<void>(layer);
         throw std::runtime_error("unhandled on_read_complete");
     }
 
     void on_error(ft::serv::event_layer& layer, ft::shared_ptr<const std::exception> e)
     {
+        static_cast<void>(layer), static_cast<void>(e);
         throw std::runtime_error("unhandled on_error");
     }
 
     void on_inactive(ft::serv::event_layer& layer)
     {
+        static_cast<void>(layer);
         throw std::runtime_error("unhandled on_inactive");
     }
 
@@ -138,10 +153,12 @@ void ft::serv::event_channel_base::set_loop(ft::shared_ptr<event_worker> loop)
 
 void ft::serv::event_channel_base::trigger_read() throw()
 {
+    // FIXME: ...
 }
 
 void ft::serv::event_channel_base::trigger_write() throw()
 {
+    // FIXME: ...
 }
 
 void ft::serv::event_channel_base::do_register(const ft::shared_ptr<event_channel_base>& self)
@@ -172,16 +189,20 @@ void ft::serv::event_channel_base::add_last_handler(const ft::shared_ptr<event_h
 
 void ft::serv::event_channel_base::on_write(const ft::serv::byte_buffer&)
 {
+    // FIXME: put_data
 }
 
 void ft::serv::event_channel_base::on_flush()
 {
+    // FIXME: send
 }
 
 void ft::serv::event_channel_base::on_disconnect()
 {
+    // FIXME: force (if is not called by deregister then try deregister)
 }
 
 void ft::serv::event_channel_base::begin_read()
 {
+    // FIXME: ... implement in child class (server, stream)
 }

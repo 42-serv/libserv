@@ -17,9 +17,9 @@
 
 ft::serv::event_layer::event_layer(event_channel_base& channel, const ft::shared_ptr<event_handler_base>& handler)
     : channel(channel),
+      handler(handler),
       next(),
-      prev(),
-      handler(handler)
+      prev()
 {
 }
 
