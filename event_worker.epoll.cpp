@@ -10,6 +10,7 @@
 #include "socket_utils.hpp"
 
 #include <smart_ptr/shared_ptr.hpp>
+#include <thread/condition_variable.hpp>
 #include <thread/lock_guard.hpp>
 #include <thread/mutex.hpp>
 #include <thread/thread.hpp>
@@ -21,6 +22,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <exception>
 #include <map>
 #include <string>
 #include <vector>
@@ -60,6 +62,7 @@ namespace ft
 
 ft::serv::event_worker::event_worker()
     : lock(),
+      cond(),
       boss_ident(::epoll_create1(EPOLL_CLOEXEC)),
       event_ident(0),
       boss_list(),
@@ -149,24 +152,10 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
     _epoll_operation(this->boss_ident, EPOLL_CTL_MOD, channel);
 }
 
-void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
-{
-    const ft::lock_guard<ft::mutex> lock(this->lock);
-    try
-    {
-        this->tasks.push_back(task);
-        this->wake_up();
-    }
-    catch (const std::exception& e)
-    {
-        // TODO: reject
-    }
-}
-
 void ft::serv::event_worker::loop()
 {
-    // NOTE: 비원자적 연산. loop_thread 설정 전에 offer_task 하는 경우에 문제 발생함.
     this->loop_thread = ft::thread::self();
+    this->cond.notify_all();
 
     event_list events;
 
@@ -210,13 +199,6 @@ void ft::serv::event_worker::loop()
             events.resize(n << 1);
         }
     }
-}
-
-bool ft::serv::event_worker::is_in_event_loop()
-{
-    assert(this->loop_thread);
-
-    return ft::thread::self() == this->loop_thread;
 }
 
 void ft::serv::event_worker::wake_up()
@@ -275,20 +257,5 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
         {
             // TODO: trigger_read_eof, RDHUP?
         }
-    }
-}
-
-void ft::serv::event_worker::execute_tasks() throw()
-{
-    task_list snapshot;
-    {
-        const ft::lock_guard<ft::mutex> lock(this->lock);
-        this->tasks.swap(snapshot);
-    }
-
-    for (task_list::iterator it = snapshot.begin(); it != snapshot.end(); ++it)
-    {
-        ft::shared_ptr<task_base> task = *it;
-        task->run();
     }
 }

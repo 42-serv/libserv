@@ -6,6 +6,7 @@
 #include "byte_buffer.hpp"
 #include "serv_types.hpp"
 
+#include <smart_ptr/shared_ptr.hpp>
 #include <smart_ptr/weak_ptr.hpp>
 
 namespace ft
@@ -27,7 +28,7 @@ namespace ft
             byte_buffer send_buf;
             ft::shared_ptr<event_layer> pipeline_head;
             ft::shared_ptr<event_layer> pipeline_tail;
-            event_worker* loop;
+            ft::weak_ptr<event_worker> loop;
 
         public:
             bool readability_interested;
@@ -43,8 +44,8 @@ namespace ft
 
             ident_t get_ident() const throw();
 
-            event_worker* get_loop() const;
-            void set_loop(event_worker*);
+            ft::shared_ptr<ft::serv::event_worker> get_loop() const;
+            void set_loop(ft::shared_ptr<event_worker>);
 
             void trigger_read() throw();
             void trigger_write() throw();

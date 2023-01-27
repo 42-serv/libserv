@@ -9,6 +9,7 @@
 
 #include <smart_ptr/shared_ptr.hpp>
 #include <thread/mutex.hpp>
+#include <thread/thread.hpp>
 
 namespace ft
 {
@@ -18,17 +19,20 @@ namespace ft
         {
         public:
             typedef dynamic_array<ft::shared_ptr<event_worker> >::type loop_list;
+            typedef dynamic_array<ft::shared_ptr<ft::thread> >::type thread_list;
 
         private:
             ft::mutex lock;
             loop_list::size_type index;
             loop_list loops;
+            thread_list threads;
 
         public:
             event_worker_group();
             ~event_worker_group();
 
             void put_worker(const ft::shared_ptr<event_worker>& worker);
+            void join_all();
             const ft::shared_ptr<event_worker>& next();
 
         private:

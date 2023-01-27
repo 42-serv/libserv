@@ -119,22 +119,19 @@ ft::serv::ident_t ft::serv::event_channel_base::get_ident() const throw()
     return this->ident;
 }
 
-ft::serv::event_worker* ft::serv::event_channel_base::get_loop() const
+ft::shared_ptr<ft::serv::event_worker> ft::serv::event_channel_base::get_loop() const
 {
-    if (!this->loop)
+    if (ft::shared_ptr<ft::serv::event_worker> ptr = this->loop.lock())
     {
-        throw std::runtime_error("bad_loop");
+        return ptr;
     }
 
-    return this->loop;
+    throw std::runtime_error("bad_loop");
 }
 
-void ft::serv::event_channel_base::set_loop(event_worker* loop)
+void ft::serv::event_channel_base::set_loop(ft::shared_ptr<event_worker> loop)
 {
-    if (this->loop && loop)
-    {
-        throw std::runtime_error("bad_loop");
-    }
+    assert(this->loop.expired() || !loop);
 
     this->loop = loop;
 }

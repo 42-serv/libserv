@@ -129,7 +129,7 @@ FT_SERV_DEFINE_TASK_3(event_layer_task_e,
 
 void ft::serv::event_layer::invoke_on_active()
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -143,7 +143,7 @@ void ft::serv::event_layer::invoke_on_active()
 
 void ft::serv::event_layer::invoke_on_read(ft::shared_ptr<void> arg)
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -157,7 +157,7 @@ void ft::serv::event_layer::invoke_on_read(ft::shared_ptr<void> arg)
 
 void ft::serv::event_layer::invoke_on_read_complete()
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -171,7 +171,7 @@ void ft::serv::event_layer::invoke_on_read_complete()
 
 void ft::serv::event_layer::invoke_on_error(ft::shared_ptr<const std::exception> e)
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -185,7 +185,7 @@ void ft::serv::event_layer::invoke_on_error(ft::shared_ptr<const std::exception>
 
 void ft::serv::event_layer::invoke_on_inactive()
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -199,7 +199,7 @@ void ft::serv::event_layer::invoke_on_inactive()
 
 void ft::serv::event_layer::invoke_do_register(ft::shared_ptr<void> arg)
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -213,7 +213,7 @@ void ft::serv::event_layer::invoke_do_register(ft::shared_ptr<void> arg)
 
 void ft::serv::event_layer::invoke_do_write(ft::shared_ptr<const void> arg)
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -227,7 +227,7 @@ void ft::serv::event_layer::invoke_do_write(ft::shared_ptr<const void> arg)
 
 void ft::serv::event_layer::invoke_do_flush()
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -241,7 +241,7 @@ void ft::serv::event_layer::invoke_do_flush()
 
 void ft::serv::event_layer::invoke_do_disconnect()
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
@@ -255,7 +255,7 @@ void ft::serv::event_layer::invoke_do_disconnect()
 
 void ft::serv::event_layer::invoke_do_deregister()
 {
-    event_worker* loop = this->channel.get_loop();
+    ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
