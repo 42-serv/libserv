@@ -56,14 +56,14 @@ ft::serv::event_worker::event_worker()
     if (::kevent(this->boss_ident, beginof(change), countof(change), null, 0, null) < 0)
     {
         const syscall_failed e;
-        close_socket(this->boss_ident);
+        socket_utils::close_socket(this->boss_ident);
         throw e;
     }
 }
 
 ft::serv::event_worker::~event_worker()
 {
-    close_socket(this->boss_ident);
+    socket_utils::close_socket(this->boss_ident);
 }
 
 void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base>& channel)

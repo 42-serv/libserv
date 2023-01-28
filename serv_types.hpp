@@ -4,6 +4,7 @@
 #pragma once
 
 #define null NULL
+#define staticassert(_x) static_cast<void>(sizeof(char[(_x) ? 1 : -1]))
 #define beginof(_x) (&(_x)[0])
 #define countof(_x) (sizeof(_x) / sizeof((_x)[0]))
 

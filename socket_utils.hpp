@@ -10,63 +10,80 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 namespace ft
 {
     namespace serv
     {
-        static inline void close_socket(const ident_t socket)
+        struct socket_utils
         {
-            if (::close(socket) < 0)
+            static inline long recv_socket(const ident_t socket, void* buf, std::size_t len)
             {
-                const syscall_failed e;
-                // ignore
-            }
-        }
+                staticassert(sizeof(long) >= sizeof(::ssize_t));
 
-        static inline bool set_socket_reuse_address(const ident_t socket, const bool value)
-        {
-            return !(::setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)) < 0);
-        }
-
-        static inline bool set_socket_linger(const ident_t socket, const bool enable, const int time_in_seconds)
-        {
-            struct linger value;
-            value.l_onoff = enable;
-            value.l_linger = time_in_seconds;
-
-            return !(::setsockopt(socket, SOL_SOCKET, SO_LINGER, &value, sizeof(value)) < 0);
-        }
-
-        static inline bool set_tcp_nodelay(const ident_t socket, const bool value)
-        {
-            return !(::setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value)) < 0);
-        }
-
-        static inline bool set_nonblocking(const ident_t socket, const bool value)
-        {
-            int status_flags = ::fcntl(socket, F_GETFL, 0);
-            if (status_flags < 0)
-            {
-                return false;
+                ::ssize_t value = ::read(socket, buf, len); // ::recv(socket, buf, len, 0);
+                if (value < 0)
+                {
+                    const syscall_failed e;
+                    return -e.error();
+                }
+                return value;
             }
 
-            if (value)
+            static inline void close_socket(const ident_t socket)
             {
-                status_flags |= O_NONBLOCK;
-            }
-            else
-            {
-                status_flags &= ~O_NONBLOCK;
-            }
-
-            if (::fcntl(socket, F_SETFL, status_flags) < 0)
-            {
-                return false;
+                if (::close(socket) < 0)
+                {
+                    const syscall_failed e;
+                    // ignore
+                }
             }
 
-            return true;
-        }
+            static inline bool set_socket_reuse_address(const ident_t socket, const bool value)
+            {
+                return !(::setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)) < 0);
+            }
+
+            static inline bool set_socket_linger(const ident_t socket, const bool enable, const int time_in_seconds)
+            {
+                struct linger value;
+                value.l_onoff = enable;
+                value.l_linger = time_in_seconds;
+
+                return !(::setsockopt(socket, SOL_SOCKET, SO_LINGER, &value, sizeof(value)) < 0);
+            }
+
+            static inline bool set_tcp_nodelay(const ident_t socket, const bool value)
+            {
+                return !(::setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value)) < 0);
+            }
+
+            static inline bool set_nonblocking(const ident_t socket, const bool value)
+            {
+                int status_flags = ::fcntl(socket, F_GETFL, 0);
+                if (status_flags < 0)
+                {
+                    return false;
+                }
+
+                if (value)
+                {
+                    status_flags |= O_NONBLOCK;
+                }
+                else
+                {
+                    status_flags &= ~O_NONBLOCK;
+                }
+
+                if (::fcntl(socket, F_SETFL, status_flags) < 0)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        };
     }
 }

@@ -17,7 +17,9 @@ SOURCES += \
 	event_channel_base.cpp \
 	event_handler_base.cpp \
 	event_layer.cpp \
+	event_worker.cpp \
 	event_worker_group.cpp \
+	task_base.cpp \
 
 ifeq ($(shell uname), Linux)
 	SOURCES += \

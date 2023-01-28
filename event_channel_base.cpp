@@ -8,6 +8,7 @@
 #include "event_layer.hpp"
 #include "event_worker.hpp"
 #include "serv_types.hpp"
+#include "socket_utils.hpp"
 
 #include <smart_ptr/make_shared.hpp>
 #include <smart_ptr/shared_ptr.hpp>
@@ -151,16 +152,21 @@ void ft::serv::event_channel_base::set_loop(ft::shared_ptr<event_worker> loop)
 void ft::serv::event_channel_base::trigger_read() throw()
 {
     // FIXME: ...
+    this->begin_read();
 }
 
 void ft::serv::event_channel_base::trigger_write() throw()
 {
     // FIXME: ...
+    this->on_flush();
+    this->writability_interested = false;
+    this->get_loop()->watch_ability(*this);
 }
 
 void ft::serv::event_channel_base::do_register()
 {
     this->pipeline_tail->post_register();
+    // FIXME: after register complete
     this->pipeline_head->notify_active();
 }
 
@@ -200,4 +206,20 @@ void ft::serv::event_channel_base::on_disconnect()
 void ft::serv::event_channel_base::begin_read()
 {
     // FIXME: ... implement in child class (server, stream)
+    ft::shared_ptr<byte_buffer> buf = ft::make_shared<byte_buffer>(4096);
+    // NOTE: until EAGAIN
+    long t = socket_utils::recv_socket(this->get_ident(), buf->raw_buffer(), buf->raw_length());
+    if (t < 0)
+    {
+        // NOTE: handle error
+        assert(false);
+    }
+    // NOTE: handle orderly shutdown
+    if (t != 0)
+    {
+        buf->raw_shrink(t);
+        this->pipeline_head->notify_read(buf);
+    }
+
+    this->pipeline_head->notify_read_complete();
 }

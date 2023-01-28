@@ -95,11 +95,11 @@ ft::serv::event_worker::event_worker()
     {
         if (!(this->boss_ident < 0))
         {
-            close_socket(this->boss_ident);
+            socket_utils::close_socket(this->boss_ident);
         }
         if (!(this->event_ident < 0))
         {
-            close_socket(this->event_ident);
+            socket_utils::close_socket(this->event_ident);
         }
         throw;
     }
@@ -107,8 +107,8 @@ ft::serv::event_worker::event_worker()
 
 ft::serv::event_worker::~event_worker()
 {
-    close_socket(this->boss_ident);
-    close_socket(this->event_ident);
+    socket_utils::close_socket(this->boss_ident);
+    socket_utils::close_socket(this->event_ident);
 }
 
 void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base>& channel)
