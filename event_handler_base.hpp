@@ -27,7 +27,7 @@ namespace ft
             virtual void on_error(event_layer& layer, ft::shared_ptr<const std::exception>);
             virtual void on_inactive(event_layer& layer);
 
-            virtual void on_register(event_layer& layer, ft::shared_ptr<void>);
+            virtual void on_register(event_layer& layer);
             virtual void on_write(event_layer& layer, ft::shared_ptr<const void>);
             virtual void on_flush(event_layer& layer);
             virtual void on_disconnect(event_layer& layer);

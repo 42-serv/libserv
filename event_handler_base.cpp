@@ -43,9 +43,9 @@ void ft::serv::event_handler_base::on_inactive(event_layer& layer)
     layer.notify_inactive();
 }
 
-void ft::serv::event_handler_base::on_register(event_layer& layer, ft::shared_ptr<void> arg)
+void ft::serv::event_handler_base::on_register(event_layer& layer)
 {
-    layer.post_register(arg);
+    layer.post_register();
 }
 
 void ft::serv::event_handler_base::on_write(event_layer& layer, ft::shared_ptr<const void> arg)

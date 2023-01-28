@@ -6,6 +6,7 @@
 #include "byte_buffer.hpp"
 #include "serv_types.hpp"
 
+#include <smart_ptr/enable_shared_from_this.hpp>
 #include <smart_ptr/shared_ptr.hpp>
 #include <smart_ptr/weak_ptr.hpp>
 
@@ -19,7 +20,7 @@ namespace ft
 
         class event_handler_base;
 
-        class event_channel_base
+        class event_channel_base : public ft::enable_shared_from_this<event_channel_base>
         {
         private:
             ident_t ident;
@@ -50,7 +51,7 @@ namespace ft
             void trigger_read() throw();
             void trigger_write() throw();
 
-            void do_register(const ft::shared_ptr<event_channel_base>&);
+            void do_register();
             void do_deregister();
 
             void add_first_handler(const ft::shared_ptr<event_handler_base>&);

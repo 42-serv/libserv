@@ -40,7 +40,7 @@ namespace ft
             void on_error(ft::shared_ptr<const std::exception>);
             void on_inactive();
 
-            void do_register(ft::shared_ptr<void>);
+            void do_register();
             void do_write(ft::shared_ptr<const void>);
             void do_flush();
             void do_disconnect();
@@ -53,7 +53,7 @@ namespace ft
             void invoke_on_error(ft::shared_ptr<const std::exception>);
             void invoke_on_inactive();
 
-            void invoke_do_register(ft::shared_ptr<void>);
+            void invoke_do_register();
             void invoke_do_write(ft::shared_ptr<const void>);
             void invoke_do_flush();
             void invoke_do_disconnect();
@@ -66,7 +66,7 @@ namespace ft
             void notify_error(ft::shared_ptr<const std::exception>);
             void notify_inactive();
 
-            void post_register(ft::shared_ptr<void>);
+            void post_register();
             void post_write(ft::shared_ptr<const void>);
             void post_flush();
             void post_disconnect();

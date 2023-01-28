@@ -75,9 +75,9 @@ void ft::serv::event_layer::on_inactive()
     this->handler->on_inactive(*this);
 }
 
-void ft::serv::event_layer::do_register(ft::shared_ptr<void> arg)
+void ft::serv::event_layer::do_register()
 {
-    this->handler->on_register(*this, arg);
+    this->handler->on_register(*this);
 }
 
 void ft::serv::event_layer::do_write(ft::shared_ptr<const void> arg)
@@ -197,17 +197,17 @@ void ft::serv::event_layer::invoke_on_inactive()
     }
 }
 
-void ft::serv::event_layer::invoke_do_register(ft::shared_ptr<void> arg)
+void ft::serv::event_layer::invoke_do_register()
 {
     ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
     if (loop->is_in_event_loop())
     {
-        this->do_register(arg);
+        this->do_register();
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task_pv>(*this, &ft::serv::event_layer::do_register, arg));
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::do_register));
     }
 }
 
@@ -292,9 +292,9 @@ void ft::serv::event_layer::notify_inactive()
     this->next->invoke_on_inactive();
 }
 
-void ft::serv::event_layer::post_register(ft::shared_ptr<void> arg)
+void ft::serv::event_layer::post_register()
 {
-    this->prev.lock()->invoke_do_register(arg);
+    this->prev.lock()->invoke_do_register();
 }
 
 void ft::serv::event_layer::post_write(ft::shared_ptr<const void> arg)

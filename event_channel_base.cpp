@@ -21,14 +21,11 @@ public:
     dummy_inbound_adapter(ft::serv::event_channel_base& channel) : ft::serv::event_handler_base(), channel(channel) {}
     ~dummy_inbound_adapter() {}
 
-    void on_register(ft::serv::event_layer& layer, ft::shared_ptr<void> arg)
+    void on_register(ft::serv::event_layer& layer)
     {
         static_cast<void>(layer);
 
-        ft::shared_ptr<ft::serv::event_channel_base> channel = ft::static_pointer_cast<ft::serv::event_channel_base>(arg);
-        assert(this->channel.get_ident() == channel->get_ident());
-
-        this->channel.get_loop()->add_channel(channel);
+        this->channel.get_loop()->add_channel(this->channel.shared_from_this());
     }
 
     void on_write(ft::serv::event_layer& layer, ft::shared_ptr<const void> arg)
@@ -161,11 +158,9 @@ void ft::serv::event_channel_base::trigger_write() throw()
     // FIXME: ...
 }
 
-void ft::serv::event_channel_base::do_register(const ft::shared_ptr<event_channel_base>& self)
+void ft::serv::event_channel_base::do_register()
 {
-    assert(self.get() == this);
-
-    this->pipeline_tail->post_register(self);
+    this->pipeline_tail->post_register();
     this->pipeline_head->notify_active();
 }
 
