@@ -16,3 +16,4 @@
 # Binary files
 *.a
 *.dylib
+*.out
