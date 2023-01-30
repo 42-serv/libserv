@@ -8,7 +8,7 @@ ARFLAGS = crs
 
 CXXFLAGS += -MMD -MF $(@:.o=.d) -MT $@ -MP
 CXXFLAGS += --std=c++98 -Wall -Wextra -Werror
-CXXFLAGS += -I..
+CXXFLAGS += -Iincludes
 
 TARGET = libserv.a
 OBJECTS_DIR = objs/
