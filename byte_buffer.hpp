@@ -49,7 +49,7 @@ namespace ft
 
             inline void raw_shrink(size_type length)
             {
-                assert(length <= this->raw_length());
+                assert(length <= this->buffer.size());
 
                 this->buffer.resize(length);
             }

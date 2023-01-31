@@ -7,7 +7,6 @@
 #include "logger.hpp"
 #include "serv_exception.hpp"
 #include "serv_types.hpp"
-#include "socket_utils.hpp"
 
 #include <smart_ptr/shared_ptr.hpp>
 #include <thread/condition_variable.hpp>
@@ -95,11 +94,11 @@ ft::serv::event_worker::event_worker()
     {
         if (!(this->boss_ident < 0))
         {
-            socket_utils::close_socket(this->boss_ident);
+            ::close(this->boss_ident);
         }
         if (!(this->event_ident < 0))
         {
-            socket_utils::close_socket(this->event_ident);
+            ::close(this->event_ident);
         }
         throw;
     }
@@ -107,8 +106,8 @@ ft::serv::event_worker::event_worker()
 
 ft::serv::event_worker::~event_worker()
 {
-    socket_utils::close_socket(this->boss_ident);
-    socket_utils::close_socket(this->event_ident);
+    ::close(this->boss_ident);
+    ::close(this->event_ident);
 }
 
 void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base>& channel)
