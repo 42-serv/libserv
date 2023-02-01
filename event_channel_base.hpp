@@ -24,11 +24,11 @@ namespace ft
         {
         private:
             ident_t ident;
-            // local_address
-            // remote_address
-            byte_buffer send_buf;
+            std::string host;
+            int serv;
             ft::shared_ptr<event_layer> pipeline_head;
             ft::shared_ptr<event_layer> pipeline_tail;
+            byte_buffer send_buf;
             ft::weak_ptr<event_worker> loop;
 
         public:
@@ -40,13 +40,17 @@ namespace ft
             bool output_closed;
 
         public:
-            event_channel_base(ident_t ident);
+            event_channel_base(ident_t ident, const std::string& host, int serv);
             virtual ~event_channel_base();
 
             ident_t get_ident() const throw();
+            const std::string& get_host() const throw();
+            int get_serv() const throw();
+            const ft::shared_ptr<event_layer>& get_pipeline_head() const throw();
+            const ft::shared_ptr<event_layer>& get_pipeline_tail() const throw();
 
             ft::shared_ptr<ft::serv::event_worker> get_loop() const;
-            void set_loop(ft::shared_ptr<event_worker>);
+            void set_loop(const ft::shared_ptr<event_worker>&);
 
             void trigger_read() throw();
             void trigger_write() throw();

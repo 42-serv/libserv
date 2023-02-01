@@ -41,9 +41,9 @@ namespace ft
             void watch_ability(event_channel_base& channel);
             void offer_task(const ft::shared_ptr<task_base>& task); // common
             void loop();
-            bool is_in_event_loop(); // common
-            void wait_for_loop();    // common
-            void wake_up();
+            bool is_in_event_loop() throw(); // common
+            void wait_for_loop();            // common
+            void wake_up() throw();
 
         private:
             event_worker(const event_worker&);

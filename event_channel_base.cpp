@@ -13,6 +13,9 @@
 #include <smart_ptr/make_shared.hpp>
 #include <smart_ptr/shared_ptr.hpp>
 
+#include <stdexcept>
+#include <string>
+
 class dummy_inbound_adapter : public ft::serv::event_handler_base
 {
 private:
@@ -104,11 +107,13 @@ private:
     dummy_outbound_adapter& operator=(const dummy_outbound_adapter&);
 };
 
-ft::serv::event_channel_base::event_channel_base(ident_t ident)
+ft::serv::event_channel_base::event_channel_base(ident_t ident, const std::string& host, int serv)
     : ident(ident),
-      send_buf(),
+      host(host),
+      serv(serv),
       pipeline_head(),
       pipeline_tail(),
+      send_buf(),
       loop(),
       readability_interested(),
       writability_interested(),
@@ -132,6 +137,26 @@ ft::serv::ident_t ft::serv::event_channel_base::get_ident() const throw()
     return this->ident;
 }
 
+const std::string& ft::serv::event_channel_base::get_host() const throw()
+{
+    return this->host;
+}
+
+int ft::serv::event_channel_base::get_serv() const throw()
+{
+    return this->serv;
+}
+
+const ft::shared_ptr<ft::serv::event_layer>& ft::serv::event_channel_base::get_pipeline_head() const throw()
+{
+    return this->pipeline_head;
+}
+
+const ft::shared_ptr<ft::serv::event_layer>& ft::serv::event_channel_base::get_pipeline_tail() const throw()
+{
+    return this->pipeline_tail;
+}
+
 ft::shared_ptr<ft::serv::event_worker> ft::serv::event_channel_base::get_loop() const
 {
     if (ft::shared_ptr<ft::serv::event_worker> ptr = this->loop.lock())
@@ -142,7 +167,7 @@ ft::shared_ptr<ft::serv::event_worker> ft::serv::event_channel_base::get_loop() 
     throw std::runtime_error("bad_loop");
 }
 
-void ft::serv::event_channel_base::set_loop(ft::shared_ptr<event_worker> loop)
+void ft::serv::event_channel_base::set_loop(const ft::shared_ptr<event_worker>& loop)
 {
     assert(this->loop.expired() || !loop);
 
@@ -151,28 +176,25 @@ void ft::serv::event_channel_base::set_loop(ft::shared_ptr<event_worker> loop)
 
 void ft::serv::event_channel_base::trigger_read() throw()
 {
-    // FIXME: ...
     this->begin_read();
 }
 
 void ft::serv::event_channel_base::trigger_write() throw()
 {
-    // FIXME: ...
     this->on_flush();
-    this->writability_interested = false;
-    this->get_loop()->watch_ability(*this);
 }
 
 void ft::serv::event_channel_base::do_register()
 {
     this->pipeline_tail->post_register();
-    // FIXME: after register complete
+    // FIXME: after
     this->pipeline_head->notify_active();
 }
 
 void ft::serv::event_channel_base::do_deregister()
 {
     this->pipeline_head->notify_inactive();
+    // FIXME: after
     this->pipeline_tail->post_deregister();
 }
 
@@ -188,38 +210,26 @@ void ft::serv::event_channel_base::add_last_handler(const ft::shared_ptr<event_h
     this->pipeline_tail->set_prev(layer);
 }
 
-void ft::serv::event_channel_base::on_write(const ft::serv::byte_buffer&)
+void ft::serv::event_channel_base::on_write(const ft::serv::byte_buffer& buf)
 {
-    // FIXME: put_data
+    this->send_buf.put(buf.get(), buf.size());
 }
 
 void ft::serv::event_channel_base::on_flush()
 {
     // FIXME: send
+    this->writability_interested = false;
+    this->get_loop()->watch_ability(*this);
 }
 
 void ft::serv::event_channel_base::on_disconnect()
 {
-    // FIXME: force (if is not called by deregister then try deregister)
+    this->do_deregister();
+    // FIXME: after
+    socket_utils::close_socket(this->get_ident());
 }
 
 void ft::serv::event_channel_base::begin_read()
 {
-    // FIXME: ... implement in child class (server, stream)
-    ft::shared_ptr<byte_buffer> buf = ft::make_shared<byte_buffer>(4096);
-    // NOTE: until EAGAIN
-    long t = socket_utils::recv_socket(this->get_ident(), buf->raw_buffer(), buf->raw_length());
-    if (t < 0)
-    {
-        // NOTE: handle error
-        assert(false);
-    }
-    // NOTE: handle orderly shutdown
-    if (t != 0)
-    {
-        buf->raw_shrink(t);
-        this->pipeline_head->notify_read(buf);
-    }
-
-    this->pipeline_head->notify_read_complete();
+    throw std::runtime_error("not implemented begin_read()");
 }

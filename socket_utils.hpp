@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include <cstring>
+#include <sstream>
 #include <string>
 
 namespace ft
@@ -49,81 +50,125 @@ namespace ft
 
         struct socket_utils
         {
-            static inline ident_t bind_socket(const char* host, const char* serv)
+            static inline ident_t bind_socket(const char* const host, const char* const serv)
             {
-                struct ::addrinfo hints;
-                ::memset(&hints, 0, sizeof(hints));
-                hints.ai_family = AF_UNSPEC;
-                hints.ai_socktype = SOCK_STREAM;
-                hints.ai_protocol = 0; // ANY
-
-                // for bind()
-                hints.ai_flags |= AI_PASSIVE;
-
-                const _internal::gai_guard gai(host, serv, hints);
-
-                ident_t socket;
-                struct ::addrinfo* it;
-                for (it = gai.result; it != null; it = it->ai_next)
-                {
-                    socket = ::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
-                    if (socket < 0)
-                    {
-                        throw syscall_failed();
-                    }
-
-                    if (::bind(socket, it->ai_addr, it->ai_addrlen) < 0)
-                    {
-                        ::close(socket);
-                        continue;
-                    }
-
-                    break;
-                }
-
-                if (it == null)
-                {
-                    return -1;
-                }
-
-                return socket;
+                return socket_utils::forward_lookup(host, serv, AI_PASSIVE, &socket_utils::reuse_address_bind);
             }
 
-            // TODO: listen_socket
+            static inline ident_t connect_socket(const char* const host, const char* const serv)
+            {
+                return socket_utils::forward_lookup(host, serv, 0, &socket_utils::nosigpipe_connect);
+            }
 
-            // TODO: accept_socket
+            static inline void listen_socket(const ident_t socket, const int backlog = 16)
+            {
+                if (::listen(socket, backlog) < 0)
+                {
+                    throw syscall_failed();
+                }
+            }
 
-            static inline long recv_socket(const ident_t socket, void* buf, std::size_t len)
+            static inline ident_t accept_socket(const ident_t socket, std::string& host, int& serv) throw()
+            {
+                sockaddr addr;
+                socklen_t addr_len;
+
+                ident_t child_socket;
+                do
+                {
+                    addr_len = sizeof(addr);
+                    child_socket = ::accept(socket, &addr, &addr_len);
+                    if (child_socket < 0)
+                    {
+                        const syscall_failed e;
+                        switch (e.error())
+                        {
+                        case EINTR:
+                            continue;
+
+                        default:
+                            return -e.error();
+                        }
+                    }
+                    break;
+                } while (!0);
+
+#ifndef __linux__
+                {
+                    const int value = true;
+                    if (::setsockopt(child_socket, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value)) < 0)
+                    {
+                        ::close(child_socket);
+                        return -1;
+                    }
+                }
+#endif
+                socket_utils::reverse_lookup(addr, addr_len, host, serv);
+                return child_socket;
+            }
+
+            static inline long recv_socket(const ident_t socket, void* const buf, const std::size_t len) throw()
             {
                 staticassert(sizeof(long) >= sizeof(::ssize_t));
 
-                ::ssize_t value = ::recv(socket, buf, len, 0);
-                if (value < 0)
+                ::ssize_t value;
+                do
                 {
-                    const syscall_failed e;
-                    return -e.error();
-                }
+                    value = ::recv(socket, buf, len, 0);
+                    if (value < 0)
+                    {
+                        const syscall_failed e;
+                        switch (e.error())
+                        {
+                        case EINTR:
+                            continue;
+
+                        default:
+                            return -e.error();
+                        }
+                    }
+                    break;
+                } while (!0);
+
                 return value;
             }
 
-            // TODO: send_socket
+            static inline long send_socket(const ident_t socket, const void* const buf, const std::size_t len) throw()
+            {
+                staticassert(sizeof(long) >= sizeof(::ssize_t));
 
-            // TODO: shutdown_socket: `::shutdown(socket, SHUT_RDWR);`
+                ::ssize_t value;
+                do
+                {
+#ifdef __linux__
+                    value = ::send(socket, buf, len, MSG_NOSIGNAL);
+#else
+                    value = ::send(socket, buf, len, 0);
+#endif
+                    if (value < 0)
+                    {
+                        const syscall_failed e;
+                        switch (e.error())
+                        {
+                        case EINTR:
+                            continue;
 
-            static inline void close_socket(const ident_t socket)
+                        default:
+                            return -e.error();
+                        }
+                    }
+                    break;
+                } while (!0);
+
+                return value;
+            }
+
+            static inline void close_socket(const ident_t socket) throw()
             {
                 if (::close(socket) < 0)
                 {
                     const syscall_failed e;
                     // ignore
-                }
-            }
-
-            static inline void set_socket_reuse_address(const ident_t socket, const bool value)
-            {
-                if (::setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)) < 0)
-                {
-                    throw syscall_failed();
                 }
             }
 
@@ -139,7 +184,7 @@ namespace ft
                 }
             }
 
-            static inline void set_tcp_nodelay(const ident_t socket, const bool value)
+            static inline void set_tcp_nodelay(const ident_t socket, const int value)
             {
                 if (::setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value)) < 0)
                 {
@@ -168,6 +213,86 @@ namespace ft
                 {
                     throw syscall_failed();
                 }
+            }
+
+        private:
+            static inline int nosigpipe_connect(ident_t socket, const sockaddr* addr, socklen_t addr_len)
+            {
+#ifndef __linux__
+                const int value = true;
+                if (::setsockopt(socket, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value)) < 0)
+                {
+                    return -1;
+                }
+#endif
+                return ::connect(socket, addr, addr_len);
+            }
+
+            static inline int reuse_address_bind(ident_t socket, const sockaddr* addr, socklen_t addr_len)
+            {
+                const int value = true;
+                if (::setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)) < 0)
+                {
+                    return -1;
+                }
+                return ::bind(socket, addr, addr_len);
+            }
+
+            static inline ident_t forward_lookup(const char* const host, const char* const serv, int ai_hint_flags, int (*const func)(ident_t, const sockaddr*, socklen_t))
+            {
+                struct ::addrinfo hints;
+                ::memset(&hints, 0, sizeof(hints));
+                hints.ai_family = AF_UNSPEC;
+                hints.ai_socktype = SOCK_STREAM;
+                hints.ai_protocol = 0; // ANY
+
+                // additional flags
+                hints.ai_flags |= ai_hint_flags;
+
+                const _internal::gai_guard gai(host, serv, hints);
+
+                ident_t socket;
+                struct ::addrinfo* it;
+                for (it = gai.result; it != null; it = it->ai_next)
+                {
+                    socket = ::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
+                    if (socket < 0)
+                    {
+                        throw syscall_failed();
+                    }
+
+                    if ((*func)(socket, it->ai_addr, it->ai_addrlen) < 0)
+                    {
+                        ::close(socket);
+                        continue;
+                    }
+
+                    break;
+                }
+
+                if (it == null)
+                {
+                    return -1;
+                }
+
+                return socket;
+            }
+
+            static inline void reverse_lookup(const struct ::sockaddr& addr, const socklen_t addr_len, std::string& out_host, int& out_serv)
+            {
+                char host[NI_MAXHOST];
+                char serv[NI_MAXSERV];
+                if (::getnameinfo(&addr, addr_len, host, sizeof(host), serv, sizeof(serv), NI_NAMEREQD | NI_NUMERICSERV) != 0)
+                {
+                    if (::getnameinfo(&addr, addr_len, host, sizeof(host), serv, sizeof(serv), NI_NUMERICHOST | NI_NUMERICSERV) < 0)
+                    {
+                        throw syscall_failed();
+                    }
+                }
+
+                out_host = host;
+                std::istringstream iss(serv);
+                iss >> out_serv;
             }
         };
     }

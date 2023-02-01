@@ -19,7 +19,7 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
     }
 }
 
-bool ft::serv::event_worker::is_in_event_loop()
+bool ft::serv::event_worker::is_in_event_loop() throw()
 {
     assert(this->loop_thread);
 

@@ -17,6 +17,8 @@ SOURCES += \
 	event_channel_base.cpp \
 	event_handler_base.cpp \
 	event_layer.cpp \
+	event_server_channel_base.cpp \
+	event_stream_channel.cpp \
 	event_worker.cpp \
 	event_worker_group.cpp \
 	task_base.cpp \

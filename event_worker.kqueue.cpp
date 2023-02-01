@@ -143,7 +143,7 @@ void ft::serv::event_worker::loop()
         {
             const ft::lock_guard<ft::mutex> lock(this->lock);
             // if has task then polling
-            timeout_sec = this->tasks.empty() ? 0 : 1;
+            timeout_sec = this->tasks.empty() ? 1 : 0;
         }
         const struct ::timespec timeout = {timeout_sec, 0};
         const int n = ::kevent(this->boss_ident, changes.data(), changes.size(), events.data(), events.size(), &timeout);
@@ -179,7 +179,7 @@ void ft::serv::event_worker::loop()
     }
 }
 
-void ft::serv::event_worker::wake_up()
+void ft::serv::event_worker::wake_up() throw()
 {
     if (!this->is_in_event_loop())
     {
@@ -190,7 +190,7 @@ void ft::serv::event_worker::wake_up()
             const syscall_failed e;
             if (e.error() != EINTR)
             {
-                throw e;
+                // ignore errors
             }
         }
     }

@@ -34,7 +34,7 @@ namespace ft
 
         static const event_list::size_type MAX_EVENTS = 4096;
 
-        static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel_base& channel)
+        static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel_base& channel) throw()
         {
             int flags = 0;
             if (channel.readability_interested)
@@ -51,7 +51,8 @@ namespace ft
             change.data.fd = ident;
             if (::epoll_ctl(epoll_fd, epoll_operation, ident, &change) < 0)
             {
-                throw syscall_failed();
+                const syscall_failed e;
+                static_cast<void>(e); // ignore
             }
             channel.readability_enabled = channel.readability_interested;
             channel.writability_enabled = channel.writability_interested;
@@ -168,7 +169,7 @@ void ft::serv::event_worker::loop()
         {
             const ft::lock_guard<ft::mutex> lock(this->lock);
             // if has task then polling
-            timeout_millis = this->tasks.empty() ? 0 : 1000;
+            timeout_millis = this->tasks.empty() ? 1000 : 0;
         }
         const int n = ::epoll_wait(this->boss_ident, events.data(), events.size(), timeout_millis);
         if (n < 0)
@@ -200,7 +201,7 @@ void ft::serv::event_worker::loop()
     }
 }
 
-void ft::serv::event_worker::wake_up()
+void ft::serv::event_worker::wake_up() throw()
 {
     if (!this->is_in_event_loop())
     {
