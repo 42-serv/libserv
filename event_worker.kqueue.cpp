@@ -126,7 +126,10 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 
 void ft::serv::event_worker::loop()
 {
-    this->loop_thread = ft::thread::self();
+    {
+        const ft::lock_guard<ft::mutex> lock(this->lock);
+        this->loop_thread = ft::thread::self();
+    }
     this->cond.notify_all();
 
     event_list events;

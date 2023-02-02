@@ -29,7 +29,10 @@ bool ft::serv::event_worker::is_in_event_loop() throw()
 void ft::serv::event_worker::wait_for_loop()
 {
     const ft::lock_guard<ft::mutex> lock(this->lock);
-    this->cond.wait(this->lock);
+    if (!this->loop_thread)
+    {
+        this->cond.wait(this->lock);
+    }
 }
 
 void ft::serv::event_worker::execute_tasks() throw()
