@@ -1,7 +1,7 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
-#include "event_stream_channel.hpp"
+#include "stream_channel.hpp"
 
 #include "byte_buffer.hpp"
 #include "event_layer.hpp"
@@ -14,17 +14,17 @@
 
 #include <string>
 
-ft::serv::event_stream_channel::event_stream_channel(ident_t ident, const std::string& host, int serv, std::size_t init_buf_capacity)
+ft::serv::stream_channel::stream_channel(ident_t ident, const std::string& host, int serv, std::size_t init_buf_capacity)
     : event_channel_base(ident, host, serv),
       init_buf_capacity(init_buf_capacity)
 {
 }
 
-ft::serv::event_stream_channel::~event_stream_channel()
+ft::serv::stream_channel::~stream_channel()
 {
 }
 
-void ft::serv::event_stream_channel::begin_read()
+void ft::serv::stream_channel::begin_read()
 {
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline_head();
     const ft::shared_ptr<event_layer>& pipeline_back = this->get_pipeline_tail();

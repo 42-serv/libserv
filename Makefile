@@ -17,10 +17,10 @@ SOURCES += \
 	event_channel_base.cpp \
 	event_handler_base.cpp \
 	event_layer.cpp \
-	event_server_channel_base.cpp \
-	event_stream_channel.cpp \
 	event_worker.cpp \
 	event_worker_group.cpp \
+	server_channel_base.cpp \
+	stream_channel.cpp \
 	task_base.cpp \
 
 ifeq ($(shell uname), Linux)
