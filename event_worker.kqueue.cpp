@@ -74,8 +74,6 @@ void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base
     const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
     assert(success);
 
-    channel->readability_interested = true;
-    channel->writability_interested = true;
     this->watch_ability(*channel);
 }
 
@@ -88,8 +86,6 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
     if (it != this->channels.end())
     {
         const ft::shared_ptr<event_channel_base>& channel = it->second;
-        channel->readability_interested = false;
-        channel->writability_interested = false;
         this->watch_ability(*channel);
         this->channels.erase(it);
     }
@@ -110,17 +106,19 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
     event_list& changes = *static_cast<event_list*>(this->boss_list);
     struct ::kevent change[2];
     event_list::size_type count = 0;
-    if (channel.readability_enabled != channel.readability_interested)
+    bool interested[2];
+    bool changed[2];
+    channel.load_interested(interested, changed);
+    if (changed[0])
     {
-        EV_SET(&change[count++], ident, EVFILT_READ, channel.readability_interested ? flags_add : flags_del, 0, 0, null);
-        channel.readability_enabled = channel.readability_interested;
+        EV_SET(&change[count++], ident, EVFILT_READ, interested[0] ? flags_add : flags_del, 0, 0, null);
     }
-    if (channel.writability_enabled != channel.writability_interested)
+    if (changed[1])
     {
-        EV_SET(&change[count++], ident, EVFILT_WRITE, channel.writability_interested ? flags_add : flags_del, 0, 0, null);
-        channel.writability_enabled = channel.writability_interested;
+        EV_SET(&change[count++], ident, EVFILT_WRITE, interested[1] ? flags_add : flags_del, 0, 0, null);
     }
     changes.insert(changes.end(), beginof(change), &change[count]);
+    channel.store_interested();
     this->wake_up();
 }
 

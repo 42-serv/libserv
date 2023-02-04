@@ -174,6 +174,20 @@ void ft::serv::event_channel_base::set_loop(const ft::shared_ptr<event_worker>& 
     this->loop = loop;
 }
 
+void ft::serv::event_channel_base::load_interested(bool out_interested[2], bool out_changed[2]) throw()
+{
+    out_interested[0] = this->readability_interested;
+    out_interested[1] = this->writability_interested;
+    out_changed[0] = this->readability_enabled != this->readability_interested;
+    out_changed[1] = this->writability_enabled != this->writability_interested;
+}
+
+void ft::serv::event_channel_base::store_interested() throw()
+{
+    this->readability_enabled = this->readability_interested;
+    this->writability_enabled = this->writability_interested;
+}
+
 void ft::serv::event_channel_base::trigger_read() throw()
 {
     this->begin_read();
@@ -186,6 +200,8 @@ void ft::serv::event_channel_base::trigger_write() throw()
 
 void ft::serv::event_channel_base::do_register()
 {
+    this->readability_interested = true;
+    this->writability_interested = true;
     this->pipeline_tail->post_register();
     // FIXME: after
     this->pipeline_head->notify_active();
@@ -193,6 +209,8 @@ void ft::serv::event_channel_base::do_register()
 
 void ft::serv::event_channel_base::do_deregister()
 {
+    this->readability_interested = false;
+    this->writability_interested = false;
     this->pipeline_head->notify_inactive();
     // FIXME: after
     this->pipeline_tail->post_deregister();

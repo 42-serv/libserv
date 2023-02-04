@@ -10,6 +10,8 @@
 #include <smart_ptr/shared_ptr.hpp>
 #include <smart_ptr/weak_ptr.hpp>
 
+#include <string>
+
 namespace ft
 {
     namespace serv
@@ -31,7 +33,7 @@ namespace ft
             byte_buffer send_buf;
             ft::weak_ptr<event_worker> loop;
 
-        public:
+        private:
             bool readability_interested;
             bool writability_interested;
             bool readability_enabled;
@@ -51,6 +53,9 @@ namespace ft
 
             ft::shared_ptr<ft::serv::event_worker> get_loop() const;
             void set_loop(const ft::shared_ptr<event_worker>&);
+
+            void load_interested(bool out_interested[2], bool out_changed[2]) throw();
+            void store_interested() throw();
 
             void trigger_read() throw();
             void trigger_write() throw();

@@ -36,12 +36,15 @@ namespace ft
 
         static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel_base& channel) throw()
         {
+            bool interested[2];
+            bool changed[2];
+            channel.load_interested(interested, changed);
             int flags = 0;
-            if (channel.readability_interested)
+            if (interested[0])
             {
                 flags |= EPOLLIN;
             }
-            if (channel.writability_interested)
+            if (interested[1])
             {
                 flags |= EPOLLOUT;
             }
@@ -54,8 +57,7 @@ namespace ft
                 const syscall_failed e;
                 static_cast<void>(e); // ignore
             }
-            channel.readability_enabled = channel.readability_interested;
-            channel.writability_enabled = channel.writability_interested;
+            channel.store_interested();
         }
     }
 }
@@ -120,8 +122,6 @@ void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base
     const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
     assert(success);
 
-    channel->readability_interested = true;
-    channel->writability_interested = true;
     _epoll_operation(this->boss_ident, EPOLL_CTL_ADD, *channel);
 }
 
@@ -134,8 +134,6 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
     if (it != this->channels.end())
     {
         const ft::shared_ptr<event_channel_base>& channel = it->second;
-        channel->readability_interested = false;
-        channel->writability_interested = false;
         _epoll_operation(this->boss_ident, EPOLL_CTL_DEL, *channel);
         this->channels.erase(it->first);
     }
