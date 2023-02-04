@@ -107,6 +107,18 @@ namespace ft
                 return child_socket;
             }
 
+            static inline void name_socket(const ident_t socket, std::string& host, int& serv)
+            {
+                sockaddr addr;
+                socklen_t addr_len;
+
+                if (::getsockname(socket, &addr, &addr_len) < 0)
+                {
+                    throw syscall_failed();
+                }
+                socket_utils::reverse_lookup(addr, addr_len, host, serv);
+            }
+
             static inline long recv_socket(const ident_t socket, void* const buf, const std::size_t len) throw()
             {
                 staticassert(sizeof(long) >= sizeof(::ssize_t));
