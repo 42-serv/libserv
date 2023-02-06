@@ -30,7 +30,8 @@ namespace ft
             int serv;
             ft::shared_ptr<event_layer> pipeline_head;
             ft::shared_ptr<event_layer> pipeline_tail;
-            byte_buffer send_buf;
+            byte_buffer written_buf;
+            byte_buffer flushed_buf;
             ft::weak_ptr<event_worker> loop;
 
         private:
@@ -66,12 +67,13 @@ namespace ft
             void add_first_handler(const ft::shared_ptr<event_handler_base>&);
             void add_last_handler(const ft::shared_ptr<event_handler_base>&);
 
-            void on_write(const ft::serv::byte_buffer&);
-            void on_flush();
-            void on_disconnect();
+            void write(const ft::serv::byte_buffer&);
+            void flush();
+            void disconnect();
 
         protected:
             virtual void begin_read();
+            virtual void begin_write();
 
         private:
             event_channel_base(const event_channel_base&);

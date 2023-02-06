@@ -37,21 +37,21 @@ public:
         static_cast<void>(layer);
 
         ft::shared_ptr<const ft::serv::byte_buffer> buffer = ft::static_pointer_cast<const ft::serv::byte_buffer>(arg);
-        this->channel.on_write(*buffer);
+        this->channel.write(*buffer);
     }
 
     void on_flush(ft::serv::event_layer& layer)
     {
         static_cast<void>(layer);
 
-        this->channel.on_flush();
+        this->channel.flush();
     }
 
     void on_disconnect(ft::serv::event_layer& layer)
     {
         static_cast<void>(layer);
 
-        this->channel.on_disconnect();
+        this->channel.disconnect();
     }
 
     void on_deregister(ft::serv::event_layer& layer)
@@ -113,7 +113,8 @@ ft::serv::event_channel_base::event_channel_base(ident_t ident, const std::strin
       serv(serv),
       pipeline_head(),
       pipeline_tail(),
-      send_buf(),
+      written_buf(),
+      flushed_buf(),
       loop(),
       readability_interested(),
       writability_interested(),
@@ -195,7 +196,7 @@ void ft::serv::event_channel_base::trigger_read() throw()
 
 void ft::serv::event_channel_base::trigger_write() throw()
 {
-    this->on_flush();
+    this->begin_write();
 }
 
 void ft::serv::event_channel_base::do_register()
@@ -228,26 +229,56 @@ void ft::serv::event_channel_base::add_last_handler(const ft::shared_ptr<event_h
     this->pipeline_tail->set_prev(layer);
 }
 
-void ft::serv::event_channel_base::on_write(const ft::serv::byte_buffer& buf)
+void ft::serv::event_channel_base::write(const ft::serv::byte_buffer& buf)
 {
-    this->send_buf.put(buf.get(), buf.size());
+    this->written_buf.put(buf.get(), buf.size());
 }
 
-void ft::serv::event_channel_base::on_flush()
+void ft::serv::event_channel_base::flush()
 {
-    // FIXME: send
-    this->writability_interested = false;
-    this->get_loop()->watch_ability(*this);
+    byte_buffer& buf = this->written_buf;
+    this->flushed_buf.put(buf.get(), buf.size());
+    buf.clear();
+    this->begin_write();
 }
 
-void ft::serv::event_channel_base::on_disconnect()
+void ft::serv::event_channel_base::disconnect()
 {
-    this->do_deregister();
-    // FIXME: after
     socket_utils::close_socket(this->get_ident());
+    // FIXME: after
+    this->do_deregister();
 }
 
 void ft::serv::event_channel_base::begin_read()
 {
     throw std::runtime_error("not implemented begin_read()");
+}
+
+void ft::serv::event_channel_base::begin_write()
+{
+    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline_head();
+    const ft::shared_ptr<event_layer>& pipeline_back = this->get_pipeline_tail();
+    bool not_yet_completed = false;
+    byte_buffer& buf = this->flushed_buf;
+    while (!buf.empty())
+    {
+        const long len = socket_utils::send_socket(this->get_ident(), buf.get(), buf.size());
+        if (len < 0)
+        {
+            const error_t err = -len;
+            if (err == EAGAIN)
+            {
+                not_yet_completed = true;
+                break;
+            }
+            pipeline->notify_error(ft::make_shared<syscall_failed>(err));
+            pipeline_back->post_disconnect();
+            this->output_closed = true; // TODO: ...
+            return;
+        }
+        buf.remove(len);
+    }
+    buf.discard();
+    this->writability_interested = not_yet_completed;
+    this->get_loop()->watch_ability(*this);
 }

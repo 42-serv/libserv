@@ -77,6 +77,13 @@ namespace ft
                 return this->buffer.size() - this->position;
             }
 
+            inline bool empty() const throw()
+            {
+                assert(this->buffer.size() >= this->position);
+
+                return this->buffer.size() == this->position;
+            }
+
             inline void put(const void* const data, const size_type size)
             {
                 const byte_t* const array = reinterpret_cast<const byte_t*>(data);
@@ -103,6 +110,12 @@ namespace ft
                 const iterator begin = this->buffer.begin();
                 const iterator end = begin + this->position;
                 this->buffer.erase(begin, end);
+                this->position = size_type();
+            }
+
+            inline void clear() throw()
+            {
+                this->buffer.clear();
                 this->position = size_type();
             }
 
