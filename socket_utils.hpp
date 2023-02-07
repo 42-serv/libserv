@@ -112,6 +112,7 @@ namespace ft
                 sockaddr addr;
                 socklen_t addr_len;
 
+                addr_len = sizeof(addr);
                 if (::getsockname(socket, &addr, &addr_len) < 0)
                 {
                     throw syscall_failed();

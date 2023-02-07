@@ -16,22 +16,22 @@ namespace ft
     {
         class event_worker_group;
 
-        class server_channel_base : public event_channel_base
+        class server_channel : public event_channel_base
         {
         private:
             ft::shared_ptr<event_worker_group> group;
 
         public:
-            server_channel_base(ident_t ident, const std::string& host, int serv, const ft::shared_ptr<event_worker_group>& group);
-            virtual ~server_channel_base();
+            server_channel(ident_t ident, const std::string& host, int serv, const ft::shared_ptr<event_worker_group>& group);
+            ~server_channel();
 
         protected:
             void begin_read();
             virtual ft::shared_ptr<event_channel_base> make_child(ident_t child_ident, const std::string& child_host, int child_serv);
 
         private:
-            server_channel_base(const server_channel_base&);
-            server_channel_base& operator=(const server_channel_base&);
+            server_channel(const server_channel&);
+            server_channel& operator=(const server_channel&);
         };
     }
 }

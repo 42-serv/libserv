@@ -1,7 +1,7 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
-#include "server_channel_base.hpp"
+#include "server_channel.hpp"
 
 #include "event_layer.hpp"
 #include "event_worker_group.hpp"
@@ -12,20 +12,20 @@
 #include <smart_ptr/make_shared.hpp>
 #include <smart_ptr/shared_ptr.hpp>
 
-#include <exception>
+#include <stdexcept>
 #include <string>
 
-ft::serv::server_channel_base::server_channel_base(ident_t ident, const std::string& host, int serv, const ft::shared_ptr<event_worker_group>& group)
+ft::serv::server_channel::server_channel(ident_t ident, const std::string& host, int serv, const ft::shared_ptr<event_worker_group>& group)
     : event_channel_base(ident, host, serv),
       group(group)
 {
 }
 
-ft::serv::server_channel_base::~server_channel_base()
+ft::serv::server_channel::~server_channel()
 {
 }
 
-void ft::serv::server_channel_base::begin_read()
+void ft::serv::server_channel::begin_read()
 {
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline_head();
     const ft::shared_ptr<event_layer>& pipeline_back = this->get_pipeline_tail();
@@ -54,7 +54,7 @@ void ft::serv::server_channel_base::begin_read()
     pipeline->notify_read_complete();
 }
 
-ft::shared_ptr<ft::serv::event_channel_base> ft::serv::server_channel_base::make_child(ident_t child_ident, const std::string& child_host, int child_serv)
+ft::shared_ptr<ft::serv::event_channel_base> ft::serv::server_channel::make_child(ident_t child_ident, const std::string& child_host, int child_serv)
 {
-    return ft::make_shared<stream_channel>(child_ident, child_host, child_serv);
+    return ft::make_shared<ft::serv::stream_channel>(child_ident, child_host, child_serv);
 }

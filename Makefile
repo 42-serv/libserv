@@ -19,7 +19,8 @@ SOURCES += \
 	event_layer.cpp \
 	event_worker.cpp \
 	event_worker_group.cpp \
-	server_channel_base.cpp \
+	server_bootstrap.cpp \
+	server_channel.cpp \
 	stream_channel.cpp \
 	task_base.cpp \
 
