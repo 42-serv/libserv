@@ -25,7 +25,6 @@ namespace ft
             ft::shared_ptr<event_worker_group> boss_group;
             ft::shared_ptr<event_worker_group> child_group;
             make_server_t make_server;
-            dynamic_array<ft::shared_ptr<event_channel_base> >::type server_locker;
 
         public:
             server_bootstrap(const ft::shared_ptr<event_worker_group>& boss_group, const ft::shared_ptr<event_worker_group>& child_group, make_server_t make_server);

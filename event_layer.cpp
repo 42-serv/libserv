@@ -101,28 +101,32 @@ void ft::serv::event_layer::do_deregister()
 }
 
 typedef void (ft::serv::event_layer::*member_function_pointer)(void);
-FT_SERV_DEFINE_TASK_2(event_layer_task,
+FT_SERV_DEFINE_TASK_3(event_layer_task,
                       ft::serv::event_layer&, self,
+                      ft::shared_ptr<ft::serv::event_channel_base>, _hold,
                       member_function_pointer, fn,
                       (self.*fn)());
 
 typedef void (ft::serv::event_layer::*member_function_pointer_pv)(ft::shared_ptr<void>);
-FT_SERV_DEFINE_TASK_3(event_layer_task_pv,
+FT_SERV_DEFINE_TASK_4(event_layer_task_pv,
                       ft::serv::event_layer&, self,
+                      ft::shared_ptr<ft::serv::event_channel_base>, _hold,
                       member_function_pointer_pv, fn,
                       ft::shared_ptr<void>, pv,
                       (self.*fn)(pv));
 
 typedef void (ft::serv::event_layer::*member_function_pointer_pcv)(ft::shared_ptr<const void>);
-FT_SERV_DEFINE_TASK_3(event_layer_task_pcv,
+FT_SERV_DEFINE_TASK_4(event_layer_task_pcv,
                       ft::serv::event_layer&, self,
+                      ft::shared_ptr<ft::serv::event_channel_base>, _hold,
                       member_function_pointer_pcv, fn,
                       ft::shared_ptr<const void>, pcv,
                       (self.*fn)(pcv));
 
 typedef void (ft::serv::event_layer::*member_function_pointer_e)(ft::shared_ptr<const std::exception>);
-FT_SERV_DEFINE_TASK_3(event_layer_task_e,
+FT_SERV_DEFINE_TASK_4(event_layer_task_e,
                       ft::serv::event_layer&, self,
+                      ft::shared_ptr<ft::serv::event_channel_base>, _hold,
                       member_function_pointer_e, fn,
                       ft::shared_ptr<const std::exception>, e,
                       (self.*fn)(e));
@@ -137,7 +141,7 @@ void ft::serv::event_layer::invoke_on_active()
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::on_active));
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::on_active));
     }
 }
 
@@ -151,7 +155,7 @@ void ft::serv::event_layer::invoke_on_read(ft::shared_ptr<void> arg)
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task_pv>(*this, &ft::serv::event_layer::on_read, arg));
+        loop->offer_task(ft::make_shared<event_layer_task_pv>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::on_read, arg));
     }
 }
 
@@ -165,7 +169,7 @@ void ft::serv::event_layer::invoke_on_read_complete()
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::on_read_complete));
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::on_read_complete));
     }
 }
 
@@ -179,7 +183,7 @@ void ft::serv::event_layer::invoke_on_error(ft::shared_ptr<const std::exception>
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task_e>(*this, &ft::serv::event_layer::on_error, e));
+        loop->offer_task(ft::make_shared<event_layer_task_e>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::on_error, e));
     }
 }
 
@@ -193,7 +197,7 @@ void ft::serv::event_layer::invoke_on_inactive()
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::on_inactive));
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::on_inactive));
     }
 }
 
@@ -207,7 +211,7 @@ void ft::serv::event_layer::invoke_do_register()
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::do_register));
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_register));
     }
 }
 
@@ -221,7 +225,7 @@ void ft::serv::event_layer::invoke_do_write(ft::shared_ptr<const void> arg)
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task_pcv>(*this, &ft::serv::event_layer::do_write, arg));
+        loop->offer_task(ft::make_shared<event_layer_task_pcv>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_write, arg));
     }
 }
 
@@ -235,7 +239,7 @@ void ft::serv::event_layer::invoke_do_flush()
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::do_flush));
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_flush));
     }
 }
 
@@ -249,7 +253,7 @@ void ft::serv::event_layer::invoke_do_disconnect()
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::do_disconnect));
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_disconnect));
     }
 }
 
@@ -263,7 +267,7 @@ void ft::serv::event_layer::invoke_do_deregister()
     }
     else
     {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, &ft::serv::event_layer::do_deregister));
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_deregister));
     }
 }
 

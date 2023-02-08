@@ -16,8 +16,7 @@
 ft::serv::server_bootstrap::server_bootstrap(const ft::shared_ptr<event_worker_group>& boss_group, const ft::shared_ptr<event_worker_group>& child_group, make_server_t make_server)
     : boss_group(boss_group),
       child_group(child_group),
-      make_server(make_server),
-      server_locker()
+      make_server(make_server)
 {
 }
 
@@ -50,6 +49,4 @@ void ft::serv::server_bootstrap::begin_server(const std::string& host_str, const
     ft::shared_ptr<event_channel_base> boss = (*this->make_server)(boss_ident, host, serv, this->child_group);
     boss->set_loop(this->boss_group->next());
     boss->do_register();
-    // NOTE: this에서 boss를 lock하지 않으면 do_register에서 offer_task를 호출하고 이 함수 영역을 벗어나는 순간에 소유자가 사라져서 소멸될 수 있음.
-    this->server_locker.push_back(boss);
 }
