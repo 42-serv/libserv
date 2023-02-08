@@ -36,9 +36,26 @@ void ft::serv::event_worker_group::put_worker(const ft::shared_ptr<event_worker>
     const ft::lock_guard<ft::mutex> lock(this->lock);
     ft::shared_ptr<ft::thread> working_thread = ft::make_shared<ft::thread>();
     working_thread->start(&_run_loop, worker.get());
-    worker->wait_for_loop();
     this->threads.push_back(working_thread);
     this->loops.push_back(worker);
+}
+
+void ft::serv::event_worker_group::wait_all()
+{
+    for (loop_list::iterator it = this->loops.begin(); it != this->loops.end(); ++it)
+    {
+        const ft::shared_ptr<event_worker> lp = *it;
+        lp->wait_for_loop();
+    }
+}
+
+void ft::serv::event_worker_group::shutdown_all()
+{
+    for (loop_list::iterator it = this->loops.begin(); it != this->loops.end(); ++it)
+    {
+        const ft::shared_ptr<event_worker> lp = *it;
+        lp->shutdown_loop();
+    }
 }
 
 void ft::serv::event_worker_group::join_all()

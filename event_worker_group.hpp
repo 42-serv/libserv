@@ -32,6 +32,8 @@ namespace ft
             ~event_worker_group();
 
             void put_worker(const ft::shared_ptr<event_worker>& worker);
+            void wait_all();
+            void shutdown_all();
             void join_all();
             const ft::shared_ptr<event_worker>& next();
 

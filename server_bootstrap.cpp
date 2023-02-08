@@ -18,18 +18,22 @@ ft::serv::server_bootstrap::server_bootstrap(const ft::shared_ptr<event_worker_g
       child_group(child_group),
       make_server(make_server)
 {
+    boss_group->wait_all();
+    child_group->wait_all();
 }
 
 ft::serv::server_bootstrap::~server_bootstrap()
 {
+    boss_group->join_all();
+    child_group->join_all();
 }
 
-void ft::serv::server_bootstrap::begin_server(const std::string& host_str, const std::string& serv_str)
+bool ft::serv::server_bootstrap::start_server(const std::string& host_str, const std::string& serv_str)
 {
     const ident_t boss_ident = socket_utils::bind_socket(host_str.c_str(), serv_str.c_str());
     if (boss_ident < 0)
     {
-        throw std::runtime_error("invalid host or serv string: (" + host_str + ", " + serv_str + ")");
+        return false;
     }
 
     try
@@ -49,4 +53,6 @@ void ft::serv::server_bootstrap::begin_server(const std::string& host_str, const
     ft::shared_ptr<event_channel_base> boss = (*this->make_server)(boss_ident, host, serv, this->child_group);
     boss->set_loop(this->boss_group->next());
     boss->do_register();
+
+    return true;
 }

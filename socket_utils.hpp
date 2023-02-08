@@ -16,6 +16,7 @@
 
 #include <cstring>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 namespace ft
@@ -24,16 +25,31 @@ namespace ft
     {
         namespace _internal
         {
+            class ai_failed : public std::exception
+            {
+            private:
+                error_t e;
+                const char* s;
+
+            public:
+                ai_failed(error_t e) throw() : e(e), s(const_cast<const char*>(::gai_strerror(e))) {}
+                ai_failed(error_t e, const char* s) throw() : e(e), s(s) {}
+                virtual ~ai_failed() throw() {}
+                virtual const char* what() const throw() { return this->s; }
+
+                error_t error() const throw() { return this->e; }
+            };
+
             struct gai_guard
             {
                 struct ::addrinfo* result;
 
                 gai_guard(const char* host, const char* serv, struct ::addrinfo& hints)
                 {
-                    int gai_errno = ::getaddrinfo(host, serv, &hints, &result);
+                    error_t gai_errno = ::getaddrinfo(host, serv, &hints, &result);
                     if (gai_errno != 0)
                     {
-                        throw syscall_failed(gai_errno, ::gai_strerror(gai_errno));
+                        throw ai_failed(gai_errno);
                     }
                 }
 
@@ -262,33 +278,46 @@ namespace ft
                 // additional flags
                 hints.ai_flags |= ai_hint_flags;
 
-                const _internal::gai_guard gai(host, serv, hints);
-
-                ident_t socket;
-                struct ::addrinfo* it;
-                for (it = gai.result; it != null; it = it->ai_next)
+                try
                 {
-                    socket = ::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
-                    if (socket < 0)
+                    const _internal::gai_guard gai(host, serv, hints);
+
+                    ident_t socket;
+                    struct ::addrinfo* it;
+                    for (it = gai.result; it != null; it = it->ai_next)
                     {
-                        throw syscall_failed();
+                        socket = ::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
+                        if (socket < 0)
+                        {
+                            throw syscall_failed();
+                        }
+
+                        if ((*func)(socket, it->ai_addr, it->ai_addrlen) < 0)
+                        {
+                            ::close(socket);
+                            continue;
+                        }
+
+                        break;
                     }
 
-                    if ((*func)(socket, it->ai_addr, it->ai_addrlen) < 0)
+                    if (it != null)
                     {
-                        ::close(socket);
-                        continue;
+                        return socket;
                     }
-
-                    break;
                 }
-
-                if (it == null)
+                catch (const _internal::ai_failed& e)
                 {
-                    return -1;
+                    if (e.error() != EAI_NONAME)
+                    {
+                        throw;
+                    }
                 }
-
-                return socket;
+                catch (const std::exception& e)
+                {
+                    throw;
+                }
+                return -1;
             }
 
             static inline void reverse_lookup(const struct ::sockaddr& addr, const socklen_t addr_len, std::string& out_host, int& out_serv)

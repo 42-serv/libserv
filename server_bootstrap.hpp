@@ -31,7 +31,7 @@ namespace ft
             ~server_bootstrap();
 
         public:
-            void begin_server(const std::string& host_str, const std::string& serv_str);
+            bool start_server(const std::string& host_str, const std::string& serv_str);
 
         private:
             server_bootstrap(const server_bootstrap&);
