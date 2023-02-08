@@ -12,6 +12,8 @@
 #include <thread/mutex.hpp>
 #include <thread/thread.hpp>
 
+#include <csignal>
+
 namespace ft
 {
     namespace serv
@@ -30,7 +32,9 @@ namespace ft
             void* boss_list;
             channel_dictionary channels;
             task_list tasks;
+            bool task_closed;
             ft::thread::id loop_thread;
+            std::sig_atomic_t interrupted;
 
         public:
             event_worker();
@@ -39,18 +43,21 @@ namespace ft
             void add_channel(const ft::shared_ptr<event_channel_base>& channel);
             void remove_channel(const ident_t ident);
             void watch_ability(event_channel_base& channel);
-            void offer_task(const ft::shared_ptr<task_base>& task); // common
             void loop();
-            bool is_in_event_loop() throw(); // common
-            void wait_for_loop();            // common
             void wake_up() throw();
+
+            void offer_task(const ft::shared_ptr<task_base>& task); // common
+            void shutdown_loop();                                   // common
+            bool is_in_event_loop() throw();                        // common
+            void wait_for_loop();                                   // common
 
         private:
             event_worker(const event_worker&);
             event_worker& operator=(const event_worker&);
 
             void process_events(void* list, int n) throw();
-            void execute_tasks() throw(); // common
+
+            bool execute_tasks() throw(); // common
         };
     }
 }

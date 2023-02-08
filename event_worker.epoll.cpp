@@ -70,7 +70,8 @@ ft::serv::event_worker::event_worker()
       boss_list(),
       channels(),
       tasks(),
-      loop_thread()
+      loop_thread(),
+      interrupted()
 {
     try
     {
@@ -192,7 +193,10 @@ void ft::serv::event_worker::loop()
         {
             this->process_events(&events, n);
         }
-        this->execute_tasks();
+        if (!this->execute_tasks())
+        {
+            break;
+        }
 
         if (static_cast<event_list::size_type>(n) == events.size())
         {
