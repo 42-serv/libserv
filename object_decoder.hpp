@@ -25,11 +25,8 @@ namespace ft
             object_decoder();
             ~object_decoder();
 
-            void on_active(event_layer& layer);
             void on_read(event_layer& layer, ft::shared_ptr<void>);
             void on_read_complete(event_layer& layer);
-            void on_error(event_layer& layer, ft::shared_ptr<const std::exception>);
-            void on_inactive(event_layer& layer);
 
         private:
             object_decoder(const object_decoder&);

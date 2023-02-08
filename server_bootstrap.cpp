@@ -50,7 +50,7 @@ bool ft::serv::server_bootstrap::start_server(const std::string& host_str, const
     std::string host;
     int serv;
     socket_utils::name_socket(boss_ident, host, serv);
-    ft::shared_ptr<event_channel_base> boss = (*this->make_server)(boss_ident, host, serv, this->child_group);
+    const ft::shared_ptr<event_channel_base> boss = (*this->make_server)(boss_ident, host, serv, this->child_group);
     boss->set_loop(this->boss_group->next());
     boss->do_register();
 

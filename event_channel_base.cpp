@@ -220,13 +220,13 @@ void ft::serv::event_channel_base::do_deregister()
 
 void ft::serv::event_channel_base::add_first_handler(const ft::shared_ptr<event_handler_base>& handler)
 {
-    ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
+    const ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
     this->pipeline_head->set_next(layer);
 }
 
 void ft::serv::event_channel_base::add_last_handler(const ft::shared_ptr<event_handler_base>& handler)
 {
-    ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
+    const ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
     this->pipeline_tail->set_prev(layer);
 }
 

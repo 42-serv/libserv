@@ -7,6 +7,8 @@
 #include "event_handler_base.hpp"
 #include "event_layer.hpp"
 
+#include <smart_ptr/shared_ptr.hpp>
+
 namespace ft
 {
     namespace serv
@@ -20,11 +22,8 @@ namespace ft
             bytes_decoder();
             ~bytes_decoder();
 
-            void on_active(event_layer& layer);
             void on_read(event_layer& layer, ft::shared_ptr<void>);
             void on_read_complete(event_layer& layer);
-            void on_error(event_layer& layer, ft::shared_ptr<const std::exception>);
-            void on_inactive(event_layer& layer);
 
         private:
             bytes_decoder(const bytes_decoder&);

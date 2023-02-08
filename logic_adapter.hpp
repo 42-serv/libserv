@@ -6,15 +6,17 @@
 #include "event_handler_base.hpp"
 #include "event_layer.hpp"
 
+#include <smart_ptr/shared_ptr.hpp>
+
 namespace ft
 {
     namespace serv
     {
-        class duplex_adapter : public event_handler_base
+        class logic_adapter : public event_handler_base
         {
         public:
-            duplex_adapter();
-            ~duplex_adapter();
+            logic_adapter();
+            ~logic_adapter();
 
             void on_active(event_layer& layer);
             void on_read(event_layer& layer, ft::shared_ptr<void>);
@@ -22,15 +24,9 @@ namespace ft
             void on_error(event_layer& layer, ft::shared_ptr<const std::exception>);
             void on_inactive(event_layer& layer);
 
-            void on_register(event_layer& layer);
-            void on_write(event_layer& layer, ft::shared_ptr<const void>);
-            void on_flush(event_layer& layer);
-            void on_disconnect(event_layer& layer);
-            void on_deregister(event_layer& layer);
-
         private:
-            duplex_adapter(const duplex_adapter&);
-            duplex_adapter& operator=(const duplex_adapter&);
+            logic_adapter(const logic_adapter&);
+            logic_adapter& operator=(const logic_adapter&);
         };
     }
 }

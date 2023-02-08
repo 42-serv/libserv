@@ -34,7 +34,7 @@ static void* _run_loop(void* arg)
 void ft::serv::event_worker_group::put_worker(const ft::shared_ptr<event_worker>& worker)
 {
     const ft::lock_guard<ft::mutex> lock(this->lock);
-    ft::shared_ptr<ft::thread> working_thread = ft::make_shared<ft::thread>();
+    const ft::shared_ptr<ft::thread> working_thread = ft::make_shared<ft::thread>();
     working_thread->start(&_run_loop, worker.get());
     this->threads.push_back(working_thread);
     this->loops.push_back(worker);

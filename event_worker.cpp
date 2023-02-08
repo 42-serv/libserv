@@ -63,7 +63,7 @@ bool ft::serv::event_worker::execute_tasks() throw()
 
     for (task_list::iterator it = snapshot.begin(); it != snapshot.end(); ++it)
     {
-        ft::shared_ptr<task_base> task = *it;
+        const ft::shared_ptr<task_base>& task = *it;
         task->run();
     }
 
