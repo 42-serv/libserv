@@ -29,7 +29,7 @@ void ft::serv::server_channel::begin_read()
 {
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline_head();
     const ft::shared_ptr<event_layer>& pipeline_back = this->get_pipeline_tail();
-    while (!0)
+    do
     {
         std::string child_host;
         int child_serv;
@@ -50,7 +50,7 @@ void ft::serv::server_channel::begin_read()
         pipeline->notify_read(child);
         child->set_loop(this->group->next());
         child->do_register();
-    }
+    } while (!0);
     pipeline->notify_read_complete();
 }
 

@@ -29,7 +29,7 @@ void ft::serv::stream_channel::begin_read()
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline_head();
     const ft::shared_ptr<event_layer>& pipeline_back = this->get_pipeline_tail();
     bool orderly_shutdown = false;
-    while (!0)
+    do
     {
         const ft::shared_ptr<byte_buffer> buf = ft::make_shared<byte_buffer>(this->init_buf_capacity);
         const long len = socket_utils::recv_socket(this->get_ident(), buf->raw_buffer(), buf->raw_length());
@@ -51,7 +51,7 @@ void ft::serv::stream_channel::begin_read()
         }
         buf->raw_shrink(len);
         pipeline->notify_read(buf);
-    }
+    } while (!0);
     pipeline->notify_read_complete();
     if (orderly_shutdown)
     {
