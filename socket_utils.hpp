@@ -76,7 +76,7 @@ namespace ft
                 return socket_utils::forward_lookup(host, serv, 0, &socket_utils::nosigpipe_connect);
             }
 
-            static inline void listen_socket(const ident_t socket, const int backlog = 16)
+            static inline void listen_socket(const ident_t socket, const int backlog = FT_SERV_DEFAULT_LISTEN_BACKLOG)
             {
                 if (::listen(socket, backlog) < 0)
                 {

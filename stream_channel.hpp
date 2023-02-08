@@ -19,7 +19,7 @@ namespace ft
             std::size_t init_buf_capacity;
 
         public:
-            stream_channel(ident_t ident, const std::string& host, int serv, std::size_t init_buf_capacity = 4096);
+            stream_channel(ident_t ident, const std::string& host, int serv, std::size_t init_buf_capacity = FT_SERV_DEFAULT_INIT_BUFFER_CAPACITY);
             virtual ~stream_channel();
 
         protected:

@@ -31,7 +31,7 @@ namespace ft
     {
         typedef dynamic_array<struct ::kevent>::type event_list;
 
-        static const event_list::size_type MAX_EVENTS = 4096;
+        static const event_list::size_type MAX_EVENTS = FT_SERV_MAX_EVENT_SIZE;
     }
 }
 

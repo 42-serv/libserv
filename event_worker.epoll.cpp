@@ -32,7 +32,7 @@ namespace ft
     {
         typedef dynamic_array<struct ::epoll_event>::type event_list;
 
-        static const event_list::size_type MAX_EVENTS = 4096;
+        static const event_list::size_type MAX_EVENTS = FT_SERV_MAX_EVENT_SIZE;
 
         static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel_base& channel) throw()
         {
