@@ -69,7 +69,6 @@ namespace ft
 
             void write(const ft::serv::byte_buffer&);
             void flush();
-            void disconnect();
 
         protected:
             virtual void begin_read();

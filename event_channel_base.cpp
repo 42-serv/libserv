@@ -51,7 +51,7 @@ public:
     {
         static_cast<void>(layer);
 
-        this->channel.disconnect();
+        this->channel.do_deregister();
     }
 
     void on_deregister(ft::serv::event_layer& layer)
@@ -131,6 +131,7 @@ ft::serv::event_channel_base::event_channel_base(ident_t ident, const std::strin
 
 ft::serv::event_channel_base::~event_channel_base()
 {
+    socket_utils::close_socket(this->ident);
 }
 
 ft::serv::ident_t ft::serv::event_channel_base::get_ident() const throw()
@@ -240,13 +241,6 @@ void ft::serv::event_channel_base::flush()
     this->flushed_buf.put(buf.get(), buf.size());
     buf.clear();
     this->begin_write();
-}
-
-void ft::serv::event_channel_base::disconnect()
-{
-    socket_utils::close_socket(this->get_ident());
-    // FIXME: after
-    this->do_deregister();
 }
 
 void ft::serv::event_channel_base::begin_read()
