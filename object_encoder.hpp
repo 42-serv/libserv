@@ -5,6 +5,7 @@
 
 #include "event_handler_base.hpp"
 #include "event_layer.hpp"
+#include "serv_types.hpp"
 
 #include <smart_ptr/shared_ptr.hpp>
 
@@ -15,11 +16,18 @@ namespace ft
         class object_encoder : public event_handler_base
         {
         public:
+            typedef dynamic_array<ft::shared_ptr<const void> >::type output_buffer;
+
+        private:
+            output_buffer temp;
+
+        public:
             object_encoder();
             ~object_encoder();
 
             void on_write(event_layer& layer, ft::shared_ptr<const void>);
-            void on_flush(event_layer& layer);
+
+            virtual void encode(const ft::shared_ptr<const void>& out, output_buffer& target);
 
         private:
             object_encoder(const object_encoder&);
