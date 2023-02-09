@@ -37,6 +37,23 @@ namespace ft
             {
             }
 
+            inline byte_buffer(const byte_buffer& that)
+                : buffer(that.buffer),
+                  position(that.position)
+            {
+            }
+
+            inline byte_buffer& operator=(byte_buffer that)
+            {
+                this->buffer.swap(that.buffer);
+                this->position = that.position;
+                return *this;
+            }
+
+            inline ~byte_buffer()
+            {
+            }
+
             inline byte_t* raw_buffer() throw()
             {
                 return this->buffer.data();
@@ -98,6 +115,11 @@ namespace ft
                 this->put(data, sizeof(t));
             }
 
+            inline void copy_from(const byte_buffer& t)
+            {
+                this->put(t.get(), t.size());
+            }
+
             inline void remove(const size_type size) throw()
             {
                 assert(this->size() >= size);
@@ -118,10 +140,6 @@ namespace ft
                 this->buffer.clear();
                 this->position = size_type();
             }
-
-        private:
-            byte_buffer(const byte_buffer&);
-            byte_buffer& operator=(const byte_buffer&);
         };
     }
 }

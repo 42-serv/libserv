@@ -232,13 +232,13 @@ void ft::serv::event_channel_base::add_last_handler(const ft::shared_ptr<event_h
 
 void ft::serv::event_channel_base::write(const ft::serv::byte_buffer& buf)
 {
-    this->written_buf.put(buf.get(), buf.size());
+    this->written_buf.copy_from(buf);
 }
 
 void ft::serv::event_channel_base::flush()
 {
     byte_buffer& buf = this->written_buf;
-    this->flushed_buf.put(buf.get(), buf.size());
+    this->flushed_buf.copy_from(buf);
     buf.clear();
     this->begin_write();
 }
