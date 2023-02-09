@@ -11,7 +11,7 @@
 
 #include <stdexcept>
 
-ft::serv::bytes_decoder::bytes_decoder() : cumulative_buf(), output_buf()
+ft::serv::bytes_decoder::bytes_decoder() : cumulative_buf(), output()
 {
 }
 
@@ -21,7 +21,7 @@ ft::serv::bytes_decoder::~bytes_decoder()
 
 void ft::serv::bytes_decoder::on_read(event_layer& layer, ft::shared_ptr<void> arg)
 {
-    assert(this->output_buf.empty());
+    assert(this->output.empty());
 
     const ft::shared_ptr<byte_buffer> buf = ft::static_pointer_cast<byte_buffer>(arg);
     if (this->cumulative_buf.empty())
@@ -30,28 +30,28 @@ void ft::serv::bytes_decoder::on_read(event_layer& layer, ft::shared_ptr<void> a
     }
     else
     {
-        this->cumulative_buf.copy_from(*buf);
+        this->cumulative_buf.append_from(*buf);
     }
 
     do
     {
-        byte_buffer::size_type size_prev = this->cumulative_buf.size();
-        this->decode(this->cumulative_buf, this->output_buf);
+        const byte_buffer::size_type size_prev = this->cumulative_buf.size();
+        this->decode(this->cumulative_buf, this->output);
         if (this->cumulative_buf.size() == size_prev)
         {
-            assert(this->output_buf.empty());
+            assert(this->output.empty());
 
             break;
         }
 
         assert(this->cumulative_buf.size() < size_prev);
 
-        for (output_buffer::iterator it = this->output_buf.begin(); it != this->output_buf.end(); ++it)
+        for (output_buffer::iterator it = this->output.begin(); it != this->output.end(); ++it)
         {
             layer.notify_read(*it);
         }
-        this->output_buf.clear();
-    } while (0);
+        this->output.clear();
+    } while (!0);
 }
 
 void ft::serv::bytes_decoder::on_read_complete(event_layer& layer)
@@ -60,7 +60,7 @@ void ft::serv::bytes_decoder::on_read_complete(event_layer& layer)
     layer.notify_read_complete();
 }
 
-void ft::serv::bytes_decoder::decode(byte_buffer& buf, output_buffer& out_buf)
+void ft::serv::bytes_decoder::decode(byte_buffer& buf, output_buffer& out)
 {
     throw std::runtime_error("not implemented decode()");
 }

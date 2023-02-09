@@ -21,7 +21,7 @@ namespace ft
 
         private:
             byte_buffer cumulative_buf;
-            output_buffer output_buf;
+            output_buffer output;
 
         public:
             bytes_decoder();

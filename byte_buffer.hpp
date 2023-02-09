@@ -115,7 +115,7 @@ namespace ft
                 this->put(data, sizeof(t));
             }
 
-            inline void copy_from(const byte_buffer& t)
+            inline void append_from(const byte_buffer& t)
             {
                 this->put(t.get(), t.size());
             }
