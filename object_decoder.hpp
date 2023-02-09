@@ -17,9 +17,12 @@ namespace ft
         {
         public:
             typedef dynamic_array<ft::shared_ptr<void> >::type cumulative_list;
+            typedef dynamic_array<ft::shared_ptr<void> >::type output_buffer;
+            typedef cumulative_list::size_type size_type;
 
         private:
             cumulative_list cumulative_obj;
+            output_buffer output;
 
         public:
             object_decoder();
@@ -27,6 +30,8 @@ namespace ft
 
             void on_read(event_layer& layer, ft::shared_ptr<void>);
             void on_read_complete(event_layer& layer);
+
+            virtual size_type decode(cumulative_list& obj, output_buffer& out);
 
         private:
             object_decoder(const object_decoder&);
