@@ -6,6 +6,7 @@
 #include "byte_buffer.hpp"
 #include "event_handler_base.hpp"
 #include "event_layer.hpp"
+#include "serv_types.hpp"
 
 #include <smart_ptr/shared_ptr.hpp>
 
@@ -15,8 +16,12 @@ namespace ft
     {
         class bytes_decoder : public event_handler_base
         {
+        public:
+            typedef dynamic_array<ft::shared_ptr<void> >::type output_buffer;
+
         private:
             byte_buffer cumulative_buf;
+            output_buffer output_buf;
 
         public:
             bytes_decoder();
@@ -24,6 +29,8 @@ namespace ft
 
             void on_read(event_layer& layer, ft::shared_ptr<void>);
             void on_read_complete(event_layer& layer);
+
+            virtual void decode(byte_buffer& buf, output_buffer& out);
 
         private:
             bytes_decoder(const bytes_decoder&);
