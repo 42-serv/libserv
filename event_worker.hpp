@@ -27,6 +27,7 @@ namespace ft
         private:
             ft::mutex lock;
             ft::condition_variable cond;
+            bool active;
             ident_t boss_ident;
             ident_t event_ident;
             void* boss_list;
@@ -34,7 +35,6 @@ namespace ft
             task_list tasks;
             bool task_closed;
             ft::thread::id loop_thread;
-            std::sig_atomic_t interrupted;
 
         public:
             event_worker();
@@ -47,9 +47,9 @@ namespace ft
             void wake_up() throw();
 
             void offer_task(const ft::shared_ptr<task_base>& task); // common
-            void shutdown_loop();                                   // common
-            bool is_in_event_loop() throw();                        // common
+            void shutdown_loop() throw();                           // common
             void wait_for_loop();                                   // common
+            bool is_in_event_loop() throw();                        // common
 
         private:
             event_worker(const event_worker&);

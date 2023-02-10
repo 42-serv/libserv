@@ -26,17 +26,13 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
     }
 }
 
-void ft::serv::event_worker::shutdown_loop()
+void ft::serv::event_worker::shutdown_loop() throw()
 {
-    this->interrupted = true;
+    {
+        const ft::lock_guard<ft::mutex> lock(this->lock);
+        this->active = false;
+    }
     this->wake_up();
-}
-
-bool ft::serv::event_worker::is_in_event_loop() throw()
-{
-    assert(this->loop_thread);
-
-    return ft::thread::self() == this->loop_thread;
 }
 
 void ft::serv::event_worker::wait_for_loop()
@@ -48,19 +44,26 @@ void ft::serv::event_worker::wait_for_loop()
     }
 }
 
+bool ft::serv::event_worker::is_in_event_loop() throw()
+{
+    assert(this->loop_thread);
+
+    return ft::thread::self() == this->loop_thread;
+}
+
 bool ft::serv::event_worker::execute_tasks() throw()
 {
-    task_list snapshot;
     bool in_progress;
+    task_list snapshot;
     {
         const ft::lock_guard<ft::mutex> lock(this->lock);
         this->tasks.swap(snapshot);
 
-        if (this->interrupted)
+        in_progress = this->active;
+        if (!in_progress)
         {
             this->task_closed = true;
         }
-        in_progress = !this->task_closed;
     }
 
     for (task_list::iterator it = snapshot.begin(); it != snapshot.end(); ++it)

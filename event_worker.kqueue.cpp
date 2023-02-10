@@ -39,14 +39,14 @@ namespace ft
 ft::serv::event_worker::event_worker()
     : lock(),
       cond(),
+      active(),
       boss_ident(::kqueue()),
       event_ident(0),
       boss_list(),
       channels(),
       tasks(),
       task_closed(),
-      loop_thread(),
-      interrupted()
+      loop_thread()
 {
     if (this->boss_ident < 0)
     {
@@ -127,9 +127,10 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 
 void ft::serv::event_worker::loop()
 {
+    this->loop_thread = ft::thread::self();
     {
         const ft::lock_guard<ft::mutex> lock(this->lock);
-        this->loop_thread = ft::thread::self();
+        this->active = true;
     }
     this->cond.notify_all();
 
@@ -173,6 +174,7 @@ void ft::serv::event_worker::loop()
         {
             this->process_events(&events, n);
         }
+
         if (!this->execute_tasks())
         {
             break;
