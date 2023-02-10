@@ -16,12 +16,12 @@ OBJECTS_DIR = objs/
 SOURCES += \
 	bytes_decoder.cpp \
 	bytes_encoder.cpp \
-	duplex_adapter.cpp \
 	event_channel_base.cpp \
 	event_handler_base.cpp \
 	event_layer.cpp \
 	event_worker.cpp \
 	event_worker_group.cpp \
+	logic_adapter.cpp \
 	object_decoder.cpp \
 	object_encoder.cpp \
 	server_bootstrap.cpp \

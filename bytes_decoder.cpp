@@ -60,7 +60,7 @@ void ft::serv::bytes_decoder::on_read_complete(event_layer& layer)
     layer.notify_read_complete();
 }
 
-void ft::serv::bytes_decoder::decode(byte_buffer& buf, output_buffer& out)
+void ft::serv::bytes_decoder::decode(byte_buffer&, output_buffer&)
 {
     throw std::runtime_error("not implemented decode()");
 }

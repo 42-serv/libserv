@@ -40,7 +40,7 @@ void ft::serv::object_decoder::on_read(event_layer& layer, ft::shared_ptr<void> 
     } while (!0);
 }
 
-ft::serv::object_decoder::size_type ft::serv::object_decoder::decode(cumulative_list& obj, output_buffer& out)
+ft::serv::object_decoder::size_type ft::serv::object_decoder::decode(cumulative_list&, output_buffer&)
 {
     throw std::runtime_error("not implemented decode()");
 }

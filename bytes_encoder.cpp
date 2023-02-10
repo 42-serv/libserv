@@ -26,7 +26,7 @@ void ft::serv::bytes_encoder::on_write(event_layer& layer, ft::shared_ptr<const 
     layer.post_write(buf);
 }
 
-void ft::serv::bytes_encoder::encode(const ft::shared_ptr<const void>& out, byte_buffer& target)
+void ft::serv::bytes_encoder::encode(const ft::shared_ptr<const void>&, byte_buffer&)
 {
     throw std::runtime_error("not implemented encode()");
 }

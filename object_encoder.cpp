@@ -30,7 +30,7 @@ void ft::serv::object_encoder::on_write(event_layer& layer, ft::shared_ptr<const
     this->temp.clear();
 }
 
-void ft::serv::object_encoder::encode(const ft::shared_ptr<const void>& out, output_buffer& target)
+void ft::serv::object_encoder::encode(const ft::shared_ptr<const void>&, output_buffer&)
 {
     throw std::runtime_error("not implemented encode()");
 }
