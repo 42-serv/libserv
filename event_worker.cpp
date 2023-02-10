@@ -29,6 +29,7 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
 void ft::serv::event_worker::shutdown_loop()
 {
     this->interrupted = true;
+    this->wake_up();
 }
 
 bool ft::serv::event_worker::is_in_event_loop() throw()

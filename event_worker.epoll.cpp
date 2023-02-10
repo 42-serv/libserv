@@ -71,6 +71,7 @@ ft::serv::event_worker::event_worker()
       boss_list(),
       channels(),
       tasks(),
+      task_closed(),
       loop_thread(),
       interrupted()
 {
