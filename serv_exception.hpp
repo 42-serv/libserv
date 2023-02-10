@@ -15,6 +15,20 @@ namespace ft
     {
         typedef int error_t;
 
+        struct errno_backup
+        {
+            error_t e;
+
+            errno_backup() : e(errno)
+            {
+            }
+
+            ~errno_backup()
+            {
+                errno = this->e;
+            }
+        };
+
         class syscall_failed : public std::exception
         {
         private:
