@@ -3,6 +3,7 @@
 #include <thread/condition_variable.hpp>
 #include <thread/lock_guard.hpp>
 
+#include <cassert>
 #include <exception>
 
 void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)

@@ -13,6 +13,7 @@
 #include <smart_ptr/make_shared.hpp>
 #include <smart_ptr/shared_ptr.hpp>
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 

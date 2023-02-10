@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <cassert>
 #include <exception>
 #include <map>
 #include <string>

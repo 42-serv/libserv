@@ -5,9 +5,8 @@
 
 #include "serv_types.hpp"
 
-#include <cstring>
-
 #include <cassert>
+#include <cstring>
 
 namespace ft
 {

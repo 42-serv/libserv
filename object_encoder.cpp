@@ -9,6 +9,8 @@
 
 #include <smart_ptr/shared_ptr.hpp>
 
+#include <cassert>
+
 ft::serv::object_encoder::object_encoder()
     : temp()
 {

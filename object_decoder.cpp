@@ -7,6 +7,8 @@
 
 #include <smart_ptr/shared_ptr.hpp>
 
+#include <cassert>
+
 ft::serv::object_decoder::object_decoder() : cumulative_obj()
 {
 }

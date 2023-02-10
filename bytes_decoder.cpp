@@ -9,6 +9,7 @@
 
 #include <smart_ptr/shared_ptr.hpp>
 
+#include <cassert>
 #include <stdexcept>
 
 ft::serv::bytes_decoder::bytes_decoder() : cumulative_buf(), output()
