@@ -28,13 +28,13 @@ namespace ft
             ft::mutex lock;
             ft::condition_variable cond;
             bool active;
-            ident_t boss_ident;
+            ident_t loop_ident;
             ident_t event_ident;
-            void* boss_list;
+            void* loop_list;
             channel_dictionary channels;
             task_list tasks;
             bool task_closed;
-            ft::thread::id loop_thread;
+            ft::thread::id working_thread;
 
         public:
             event_worker();

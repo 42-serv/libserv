@@ -38,7 +38,7 @@ void ft::serv::event_worker::shutdown_loop() throw()
 void ft::serv::event_worker::wait_for_loop()
 {
     const ft::lock_guard<ft::mutex> lock(this->lock);
-    if (!this->loop_thread)
+    if (!this->working_thread)
     {
         this->cond.wait(this->lock);
     }
@@ -46,9 +46,9 @@ void ft::serv::event_worker::wait_for_loop()
 
 bool ft::serv::event_worker::is_in_event_loop() throw()
 {
-    assert(this->loop_thread);
+    assert(this->working_thread);
 
-    return ft::thread::self() == this->loop_thread;
+    return ft::thread::self() == this->working_thread;
 }
 
 bool ft::serv::event_worker::execute_tasks() throw()

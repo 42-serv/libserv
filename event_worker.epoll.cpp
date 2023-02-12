@@ -67,17 +67,17 @@ ft::serv::event_worker::event_worker()
     : lock(),
       cond(),
       active(),
-      boss_ident(::epoll_create1(EPOLL_CLOEXEC)),
+      loop_ident(::epoll_create1(EPOLL_CLOEXEC)),
       event_ident(0),
-      boss_list(),
+      loop_list(),
       channels(),
       tasks(),
       task_closed(),
-      loop_thread()
+      working_thread()
 {
     try
     {
-        if (this->boss_ident < 0)
+        if (this->loop_ident < 0)
         {
             throw syscall_failed();
         }
@@ -91,16 +91,16 @@ ft::serv::event_worker::event_worker()
         struct ::epoll_event change;
         change.events = EPOLLIN;
         change.data.fd = this->event_ident;
-        if (::epoll_ctl(this->boss_ident, EPOLL_CTL_ADD, this->event_ident, &change) < 0)
+        if (::epoll_ctl(this->loop_ident, EPOLL_CTL_ADD, this->event_ident, &change) < 0)
         {
             throw syscall_failed();
         }
     }
     catch (const syscall_failed& e)
     {
-        if (!(this->boss_ident < 0))
+        if (!(this->loop_ident < 0))
         {
-            ::close(this->boss_ident);
+            ::close(this->loop_ident);
         }
         if (!(this->event_ident < 0))
         {
@@ -112,7 +112,7 @@ ft::serv::event_worker::event_worker()
 
 ft::serv::event_worker::~event_worker()
 {
-    ::close(this->boss_ident);
+    ::close(this->loop_ident);
     ::close(this->event_ident);
 }
 
@@ -125,7 +125,7 @@ void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base
     const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
     assert(success);
 
-    _epoll_operation(this->boss_ident, EPOLL_CTL_ADD, *channel);
+    _epoll_operation(this->loop_ident, EPOLL_CTL_ADD, *channel);
 }
 
 void ft::serv::event_worker::remove_channel(const ident_t ident)
@@ -137,7 +137,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
     if (it != this->channels.end())
     {
         const ft::shared_ptr<event_channel_base>& channel = it->second;
-        _epoll_operation(this->boss_ident, EPOLL_CTL_DEL, *channel);
+        _epoll_operation(this->loop_ident, EPOLL_CTL_DEL, *channel);
         this->channels.erase(it->first);
     }
     else
@@ -150,12 +150,12 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 {
     assert(this->is_in_event_loop());
 
-    _epoll_operation(this->boss_ident, EPOLL_CTL_MOD, channel);
+    _epoll_operation(this->loop_ident, EPOLL_CTL_MOD, channel);
 }
 
 void ft::serv::event_worker::loop()
 {
-    this->loop_thread = ft::thread::self();
+    this->working_thread = ft::thread::self();
     {
         const ft::lock_guard<ft::mutex> lock(this->lock);
         this->active = true;
@@ -166,7 +166,7 @@ void ft::serv::event_worker::loop()
 
     events.resize(MAX_EVENTS);
 
-    this->boss_list = null;
+    this->loop_list = null;
 
     for (;;)
     {
@@ -176,7 +176,7 @@ void ft::serv::event_worker::loop()
             // if has task then polling
             timeout_millis = this->tasks.empty() ? 1000 : 0;
         }
-        const int n = ::epoll_wait(this->boss_ident, events.data(), events.size(), timeout_millis);
+        const int n = ::epoll_wait(this->loop_ident, events.data(), events.size(), timeout_millis);
         if (n < 0)
         {
             const syscall_failed e;
@@ -244,7 +244,7 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
         if (it_channel == this->channels.end())
         {
             // no channel!!
-            const int r = ::epoll_ctl(this->boss_ident, EPOLL_CTL_DEL, ident, null);
+            const int r = ::epoll_ctl(this->loop_ident, EPOLL_CTL_DEL, ident, null);
             // ignore errors
             static_cast<void>(r);
             continue;

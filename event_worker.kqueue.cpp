@@ -40,32 +40,32 @@ ft::serv::event_worker::event_worker()
     : lock(),
       cond(),
       active(),
-      boss_ident(::kqueue()),
+      loop_ident(::kqueue()),
       event_ident(0),
-      boss_list(),
+      loop_list(),
       channels(),
       tasks(),
       task_closed(),
-      loop_thread()
+      working_thread()
 {
-    if (this->boss_ident < 0)
+    if (this->loop_ident < 0)
     {
         throw syscall_failed();
     }
 
     struct ::kevent change[1];
     EV_SET(&change[0], this->event_ident, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
-    if (::kevent(this->boss_ident, beginof(change), countof(change), null, 0, null) < 0)
+    if (::kevent(this->loop_ident, beginof(change), countof(change), null, 0, null) < 0)
     {
         const syscall_failed e;
-        ::close(this->boss_ident);
+        ::close(this->loop_ident);
         throw e;
     }
 }
 
 ft::serv::event_worker::~event_worker()
 {
-    ::close(this->boss_ident);
+    ::close(this->loop_ident);
 }
 
 void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base>& channel)
@@ -106,7 +106,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
     const int flags_del = EV_DELETE | EV_DISABLE;
 
     const ident_t ident = channel.get_ident();
-    event_list& changes = *static_cast<event_list*>(this->boss_list);
+    event_list& changes = *static_cast<event_list*>(this->loop_list);
     struct ::kevent change[2];
     event_list::size_type count = 0;
     bool interested[2];
@@ -127,7 +127,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 
 void ft::serv::event_worker::loop()
 {
-    this->loop_thread = ft::thread::self();
+    this->working_thread = ft::thread::self();
     {
         const ft::lock_guard<ft::mutex> lock(this->lock);
         this->active = true;
@@ -140,7 +140,7 @@ void ft::serv::event_worker::loop()
     events.resize(MAX_EVENTS);
     changes.reserve(MAX_EVENTS);
 
-    this->boss_list = &changes;
+    this->loop_list = &changes;
 
     for (;;)
     {
@@ -151,7 +151,7 @@ void ft::serv::event_worker::loop()
             timeout_sec = this->tasks.empty() ? 1 : 0;
         }
         const struct ::timespec timeout = {timeout_sec, 0};
-        const int n = ::kevent(this->boss_ident, changes.data(), changes.size(), events.data(), events.size(), &timeout);
+        const int n = ::kevent(this->loop_ident, changes.data(), changes.size(), events.data(), events.size(), &timeout);
         if (n < 0)
         {
             const syscall_failed e;
@@ -194,7 +194,7 @@ void ft::serv::event_worker::wake_up() throw()
     {
         struct ::kevent change[1];
         EV_SET(&change[0], this->event_ident, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
-        if (::kevent(this->boss_ident, beginof(change), countof(change), null, 0, null) < 0)
+        if (::kevent(this->loop_ident, beginof(change), countof(change), null, 0, null) < 0)
         {
             const syscall_failed e;
             if (e.error() != EINTR)
