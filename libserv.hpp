@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "bootstrap.hpp"
 #include "byte_buffer.hpp"
 #include "bytes_decoder.hpp"
 #include "bytes_encoder.hpp"
@@ -17,7 +18,6 @@
 #include "object_encoder.hpp"
 #include "serv_exception.hpp"
 #include "serv_types.hpp"
-#include "server_bootstrap.hpp"
 #include "server_channel.hpp"
 #include "socket_utils.hpp"
 #include "stream_channel.hpp"

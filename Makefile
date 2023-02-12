@@ -14,6 +14,7 @@ TARGET = libserv.a
 OBJECTS_DIR = objs/
 
 SOURCES += \
+	bootstrap.cpp \
 	bytes_decoder.cpp \
 	bytes_encoder.cpp \
 	event_channel_base.cpp \
@@ -24,7 +25,6 @@ SOURCES += \
 	logic_adapter.cpp \
 	object_decoder.cpp \
 	object_encoder.cpp \
-	server_bootstrap.cpp \
 	server_channel.cpp \
 	stream_channel.cpp \
 	task_base.cpp \
