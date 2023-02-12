@@ -34,7 +34,7 @@ void ft::serv::object_decoder::on_read(event_layer& layer, ft::shared_ptr<void> 
         }
 
         this->cumulative_obj.erase(this->cumulative_obj.begin(), this->cumulative_obj.begin() + consumed_size);
-        for (output_buffer::iterator it = this->output.begin(); it != this->output.end(); ++it)
+        foreach (output_buffer::iterator, it, this->output)
         {
             layer.notify_read(*it);
         }

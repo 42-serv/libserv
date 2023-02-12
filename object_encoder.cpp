@@ -25,7 +25,7 @@ void ft::serv::object_encoder::on_write(event_layer& layer, ft::shared_ptr<const
     assert(this->temp.empty());
 
     this->encode(arg, this->temp);
-    for (output_buffer::iterator it = this->temp.begin(); it != this->temp.end(); ++it)
+    foreach (output_buffer::iterator, it, this->temp)
     {
         layer.post_write(*it);
     }

@@ -10,7 +10,6 @@
 
 #include <smart_ptr/shared_ptr.hpp>
 #include <thread/condition_variable.hpp>
-#include <thread/lock_guard.hpp>
 #include <thread/mutex.hpp>
 #include <thread/thread.hpp>
 
@@ -128,8 +127,8 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 void ft::serv::event_worker::loop()
 {
     this->working_thread = ft::thread::self();
+    synchronized(this->lock)
     {
-        const ft::lock_guard<ft::mutex> lock(this->lock);
         this->active = true;
     }
     this->cond.notify_all();
@@ -145,8 +144,8 @@ void ft::serv::event_worker::loop()
     for (;;)
     {
         ::time_t timeout_sec;
+        synchronized(this->lock)
         {
-            const ft::lock_guard<ft::mutex> lock(this->lock);
             // if has task then polling
             timeout_sec = this->tasks.empty() ? 1 : 0;
         }

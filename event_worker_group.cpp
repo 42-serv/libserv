@@ -9,7 +9,6 @@
 
 #include <smart_ptr/make_shared.hpp>
 #include <smart_ptr/shared_ptr.hpp>
-#include <thread/lock_guard.hpp>
 #include <thread/mutex.hpp>
 #include <thread/thread.hpp>
 
@@ -33,16 +32,18 @@ static void* _run_loop(void* arg)
 
 void ft::serv::event_worker_group::put_worker(const ft::shared_ptr<event_worker>& worker)
 {
-    const ft::lock_guard<ft::mutex> lock(this->lock);
-    const ft::shared_ptr<ft::thread> working_thread = ft::make_shared<ft::thread>();
-    working_thread->start(&_run_loop, worker.get());
-    this->threads.push_back(working_thread);
-    this->loops.push_back(worker);
+    synchronized(this->lock)
+    {
+        const ft::shared_ptr<ft::thread> working_thread = ft::make_shared<ft::thread>();
+        working_thread->start(&_run_loop, worker.get());
+        this->threads.push_back(working_thread);
+        this->loops.push_back(worker);
+    }
 }
 
 void ft::serv::event_worker_group::wait_all()
 {
-    for (loop_list::iterator it = this->loops.begin(); it != this->loops.end(); ++it)
+    foreach (loop_list::iterator, it, this->loops)
     {
         const ft::shared_ptr<event_worker> lp = *it;
         lp->wait_for_loop();
@@ -51,7 +52,7 @@ void ft::serv::event_worker_group::wait_all()
 
 void ft::serv::event_worker_group::shutdown_all()
 {
-    for (loop_list::iterator it = this->loops.begin(); it != this->loops.end(); ++it)
+    foreach (loop_list::iterator, it, this->loops)
     {
         const ft::shared_ptr<event_worker> lp = *it;
         lp->shutdown_loop();
@@ -60,7 +61,7 @@ void ft::serv::event_worker_group::shutdown_all()
 
 void ft::serv::event_worker_group::join_all()
 {
-    for (thread_list::iterator it = this->threads.begin(); it != this->threads.end(); ++it)
+    foreach (thread_list::iterator, it, this->threads)
     {
         const ft::shared_ptr<ft::thread> th = *it;
         th->join();
@@ -69,10 +70,12 @@ void ft::serv::event_worker_group::join_all()
 
 const ft::shared_ptr<ft::serv::event_worker>& ft::serv::event_worker_group::next()
 {
-    const ft::lock_guard<ft::mutex> lock(this->lock);
-    if (this->index >= this->loops.size())
+    synchronized(this->lock)
     {
-        this->index = loop_list::size_type();
+        if (this->index >= this->loops.size())
+        {
+            this->index = loop_list::size_type();
+        }
+        return this->loops[this->index++ % this->loops.size()];
     }
-    return this->loops[this->index++ % this->loops.size()];
 }

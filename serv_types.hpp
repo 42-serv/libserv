@@ -36,3 +36,60 @@ namespace ft
         };
     }
 }
+
+#define foreach(_type, _name, _coll) for (_type _name = (_coll).begin(); _name != (_coll).end(); ++_name)
+#define reverse_foreach(_type, _name, _coll) for (_type _name = (_coll).rbegin(); _name != (_coll).rend(); ++_name)
+
+namespace ft
+{
+    namespace serv
+    {
+        namespace _internal
+        {
+            template <typename T>
+            static inline void _lock(void* self_ptr)
+            {
+                static_cast<T*>(self_ptr)->lock();
+            }
+
+            template <typename T>
+            static inline void _unlock(void* self_ptr)
+            {
+                static_cast<T*>(self_ptr)->unlock();
+            }
+
+            class synchronized_helper
+            {
+            private:
+                void* lock;
+                void (*fn_lock)(void*);
+                void (*fn_unlock)(void*);
+
+            public:
+                template <typename T>
+                synchronized_helper(T& lock)
+                    : lock(&lock),
+                      fn_lock(&_lock<T>),
+                      fn_unlock(&_unlock<T>)
+                {
+                    this->fn_lock(this->lock);
+                }
+
+                ~synchronized_helper()
+                {
+                    this->fn_unlock(this->lock);
+                }
+
+                inline operator bool() const
+                {
+                    return false;
+                }
+            };
+        }
+    }
+}
+
+#define synchronized(_name)                                                            \
+    if (const ft::serv::_internal::synchronized_helper __##__LINE__##helper = (_name)) \
+        throw;                                                                         \
+    else
