@@ -11,7 +11,7 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
     {
         if (this->task_closed)
         {
-            // TODO: reject
+            // FIXME: reject
             return;
         }
 
@@ -22,7 +22,7 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
         }
         catch (const std::exception& e)
         {
-            // TODO: reject
+            // FIXME: reject
         }
     }
 }

@@ -268,7 +268,7 @@ void ft::serv::event_channel_base::begin_write()
             }
             pipeline->notify_error(ft::make_shared<syscall_failed>(err));
             pipeline_back->post_disconnect();
-            this->output_closed = true; // TODO: ...
+            this->output_closed = true; // FIXME: temporary
             return;
         }
         buf.remove(len);

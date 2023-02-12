@@ -55,7 +55,7 @@ void ft::serv::stream_channel::begin_read()
     pipeline->notify_read_complete();
     if (orderly_shutdown)
     {
-        // NOTE: handle orderly shutdown
+        // FIXME: handle orderly shutdown
         // this->input_closed = true;
         pipeline_back->post_disconnect(); // FIXME: temporary
     }

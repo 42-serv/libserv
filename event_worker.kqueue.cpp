@@ -74,7 +74,7 @@ void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base
     const ident_t ident = channel->get_ident();
 
     const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
-    assert(success);
+    assert(success); // NOTE: duplicate identity
 
     this->watch_ability(*channel);
 }
