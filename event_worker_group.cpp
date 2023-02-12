@@ -45,7 +45,7 @@ void ft::serv::event_worker_group::wait_all()
 {
     foreach (loop_list::iterator, it, this->loops)
     {
-        const ft::shared_ptr<event_worker> lp = *it;
+        const ft::shared_ptr<event_worker>& lp = *it;
         lp->wait_for_loop();
     }
 }
@@ -54,7 +54,7 @@ void ft::serv::event_worker_group::shutdown_all()
 {
     foreach (loop_list::iterator, it, this->loops)
     {
-        const ft::shared_ptr<event_worker> lp = *it;
+        const ft::shared_ptr<event_worker>& lp = *it;
         lp->shutdown_loop();
     }
 }
@@ -63,7 +63,7 @@ void ft::serv::event_worker_group::join_all()
 {
     foreach (thread_list::iterator, it, this->threads)
     {
-        const ft::shared_ptr<ft::thread> th = *it;
+        const ft::shared_ptr<ft::thread>& th = *it;
         th->join();
     }
 }
