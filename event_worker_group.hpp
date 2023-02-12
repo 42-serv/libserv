@@ -18,8 +18,8 @@ namespace ft
         class event_worker_group
         {
         public:
-            typedef dynamic_array<ft::shared_ptr<event_worker> >::type loop_list;
-            typedef dynamic_array<ft::shared_ptr<ft::thread> >::type thread_list;
+            typedef dynamic_buffer<ft::shared_ptr<event_worker> >::type loop_list;
+            typedef dynamic_buffer<ft::shared_ptr<ft::thread> >::type thread_list;
 
         private:
             ft::mutex lock;

@@ -22,7 +22,7 @@ namespace ft
         {
         public:
             typedef fast_dictionary<ident_t, ft::shared_ptr<event_channel_base> >::type channel_dictionary;
-            typedef dynamic_array<ft::shared_ptr<task_base> >::type task_list;
+            typedef dynamic_buffer<ft::shared_ptr<task_base> >::type task_list;
 
         private:
             ft::mutex lock;

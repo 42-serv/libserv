@@ -17,7 +17,7 @@ namespace ft
         class bytes_decoder : public event_handler_base
         {
         public:
-            typedef dynamic_array<ft::shared_ptr<void> >::type output_buffer;
+            typedef dynamic_buffer<ft::shared_ptr<void> >::type output_buffer;
 
         private:
             byte_buffer cumulative_buf;

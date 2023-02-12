@@ -47,7 +47,7 @@ void ft::serv::bytes_decoder::on_read(event_layer& layer, ft::shared_ptr<void> a
 
         assert(this->cumulative_buf.size() < size_prev);
 
-        foreach (output_buffer::iterator, it, output)
+        foreach (output_buffer::iterator, it, this->output)
         {
             layer.notify_read(*it);
         }

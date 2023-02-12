@@ -16,8 +16,8 @@ namespace ft
         class object_decoder : public event_handler_base
         {
         public:
-            typedef dynamic_array<ft::shared_ptr<void> >::type cumulative_list;
-            typedef dynamic_array<ft::shared_ptr<void> >::type output_buffer;
+            typedef dynamic_buffer<ft::shared_ptr<void> >::type cumulative_list;
+            typedef dynamic_buffer<ft::shared_ptr<void> >::type output_buffer;
             typedef cumulative_list::size_type size_type;
 
         private:
@@ -30,7 +30,7 @@ namespace ft
 
             void on_read(event_layer& layer, ft::shared_ptr<void>);
 
-            virtual size_type decode(cumulative_list& obj, output_buffer& out);
+            virtual void decode(cumulative_list& obj, output_buffer& out);
 
         private:
             object_decoder(const object_decoder&);
