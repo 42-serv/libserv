@@ -127,7 +127,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 void ft::serv::event_worker::loop()
 {
     this->working_thread = ft::thread::self();
-    synchronized(this->lock)
+    synchronized (this->lock)
     {
         this->active = true;
     }
@@ -144,7 +144,7 @@ void ft::serv::event_worker::loop()
     for (;;)
     {
         ::time_t timeout_sec;
-        synchronized(this->lock)
+        synchronized (this->lock)
         {
             // if has task then polling
             timeout_sec = this->tasks.empty() ? 1 : 0;

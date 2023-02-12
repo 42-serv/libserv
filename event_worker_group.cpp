@@ -32,7 +32,7 @@ static void* _run_loop(void* arg)
 
 void ft::serv::event_worker_group::put_worker(const ft::shared_ptr<event_worker>& worker)
 {
-    synchronized(this->lock)
+    synchronized (this->lock)
     {
         const ft::shared_ptr<ft::thread> working_thread = ft::make_shared<ft::thread>();
         working_thread->start(&_run_loop, worker.get());
@@ -70,7 +70,7 @@ void ft::serv::event_worker_group::join_all()
 
 const ft::shared_ptr<ft::serv::event_worker>& ft::serv::event_worker_group::next()
 {
-    synchronized(this->lock)
+    synchronized (this->lock)
     {
         if (this->index >= this->loops.size())
         {

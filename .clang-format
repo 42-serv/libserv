@@ -11,3 +11,5 @@ NamespaceIndentation: All
 FixNamespaceComments: false
 PointerAlignment: Left
 Standard: c++03
+
+ForEachMacros: [ foreach, synchronized ]
