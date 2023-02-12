@@ -137,7 +137,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
     {
         const ft::shared_ptr<event_channel_base>& channel = it->second;
         _epoll_operation(this->loop_ident, EPOLL_CTL_DEL, *channel);
-        this->channels.erase(it->first);
+        this->channels.erase(it);
     }
     else
     {
