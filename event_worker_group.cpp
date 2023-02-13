@@ -43,6 +43,8 @@ void ft::serv::event_worker_group::put_worker(const ft::shared_ptr<event_worker>
 
 void ft::serv::event_worker_group::wait_all()
 {
+    assert(!this->loops.empty());
+
     foreach (loop_list::iterator, it, this->loops)
     {
         const ft::shared_ptr<event_worker>& lp = *it;
@@ -52,6 +54,8 @@ void ft::serv::event_worker_group::wait_all()
 
 void ft::serv::event_worker_group::shutdown_all()
 {
+    assert(!this->loops.empty());
+
     foreach (loop_list::iterator, it, this->loops)
     {
         const ft::shared_ptr<event_worker>& lp = *it;
@@ -61,6 +65,8 @@ void ft::serv::event_worker_group::shutdown_all()
 
 void ft::serv::event_worker_group::join_all()
 {
+    assert(!this->threads.empty());
+
     foreach (thread_list::iterator, it, this->threads)
     {
         const ft::shared_ptr<ft::thread>& th = *it;
@@ -70,12 +76,10 @@ void ft::serv::event_worker_group::join_all()
 
 const ft::shared_ptr<ft::serv::event_worker>& ft::serv::event_worker_group::next()
 {
+    assert(!this->loops.empty());
+
     synchronized (this->lock)
     {
-        if (this->index >= this->loops.size())
-        {
-            this->index = loop_list::size_type();
-        }
         return this->loops[this->index++ % this->loops.size()];
     }
 }

@@ -55,7 +55,7 @@ namespace ft
             ft::shared_ptr<ft::serv::event_worker> get_loop() const;
             void set_loop(const ft::shared_ptr<event_worker>&);
 
-            void load_interested(bool out_interested[2], bool out_changed[2]) throw();
+            void load_interested(bool out_interested[2], bool out_changed[2]) const throw();
             void store_interested() throw();
 
             void trigger_read() throw();
@@ -71,7 +71,7 @@ namespace ft
             void flush();
 
         protected:
-            virtual void begin_read();
+            virtual void begin_read() = 0;
             virtual void begin_write();
 
         private:

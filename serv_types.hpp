@@ -74,7 +74,7 @@ namespace ft
 
             public:
                 template <typename T>
-                synchronized_helper(T& lock)
+                synchronized_helper(T& lock) throw()
                     : lock(&lock),
                       fn_lock(&_lock<T>),
                       fn_unlock(&_unlock<T>)
@@ -87,7 +87,7 @@ namespace ft
                     this->fn_unlock(this->lock);
                 }
 
-                inline operator bool() const
+                inline operator bool() const throw()
                 {
                     return false;
                 }

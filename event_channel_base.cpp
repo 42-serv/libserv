@@ -177,7 +177,7 @@ void ft::serv::event_channel_base::set_loop(const ft::shared_ptr<event_worker>& 
     this->loop = loop;
 }
 
-void ft::serv::event_channel_base::load_interested(bool out_interested[2], bool out_changed[2]) throw()
+void ft::serv::event_channel_base::load_interested(bool out_interested[2], bool out_changed[2]) const throw()
 {
     out_interested[0] = this->readability_interested;
     out_interested[1] = this->writability_interested;
@@ -242,11 +242,6 @@ void ft::serv::event_channel_base::flush()
     this->flushed_buf.append_from(buf);
     buf.clear();
     this->begin_write();
-}
-
-void ft::serv::event_channel_base::begin_read()
-{
-    throw std::runtime_error("not implemented begin_read()");
 }
 
 void ft::serv::event_channel_base::begin_write()
