@@ -282,11 +282,9 @@ namespace ft
                 {
                     const _internal::gai_guard gai(host, serv, hints);
 
-                    ident_t socket;
-                    struct ::addrinfo* it;
-                    for (it = gai.result; it != null; it = it->ai_next)
+                    for (struct ::addrinfo* it = gai.result; it != null; it = it->ai_next)
                     {
-                        socket = ::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
+                        ident_t socket = ::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
                         if (socket < 0)
                         {
                             throw syscall_failed();
@@ -298,13 +296,10 @@ namespace ft
                             continue;
                         }
 
-                        break;
-                    }
-
-                    if (it != null)
-                    {
                         return socket;
                     }
+
+                    throw syscall_failed();
                 }
                 catch (const _internal::ai_failed& e)
                 {
@@ -313,10 +308,7 @@ namespace ft
                         throw;
                     }
                 }
-                catch (const std::exception& e)
-                {
-                    throw;
-                }
+
                 return -1;
             }
 

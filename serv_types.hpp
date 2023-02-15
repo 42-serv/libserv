@@ -98,5 +98,5 @@ namespace ft
 
 #define synchronized(_name)                                                            \
     if (const ft::serv::_internal::synchronized_helper __##__LINE__##helper = (_name)) \
-        throw;                                                                         \
+        assert(false);                                                                 \
     else

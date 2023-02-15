@@ -107,7 +107,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
     const ident_t ident = channel.get_ident();
     event_list& changes = *static_cast<event_list*>(this->loop_list);
     struct ::kevent change[2];
-    event_list::size_type count = 0;
+    event_list::size_type count = event_list::size_type();
     bool interested[2];
     bool changed[2];
     channel.load_interested(interested, changed);
