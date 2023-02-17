@@ -23,9 +23,9 @@ namespace ft
 
         public:
             object_encoder();
-            ~object_encoder();
+            virtual ~object_encoder();
 
-            void on_write(event_layer& layer, ft::shared_ptr<const void>);
+            virtual void on_write(event_layer& layer, ft::shared_ptr<const void>);
 
             virtual void encode(const ft::shared_ptr<const void>& out, output_buffer& target);
 

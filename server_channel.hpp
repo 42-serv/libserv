@@ -23,10 +23,10 @@ namespace ft
 
         public:
             server_channel(ident_t ident, const std::string& host, int serv, const ft::shared_ptr<event_worker_group>& group);
-            ~server_channel();
+            virtual ~server_channel();
 
         protected:
-            void begin_read();
+            virtual void begin_read();
             virtual ft::shared_ptr<event_channel_base> make_child(ident_t child_ident, const std::string& child_host, int child_serv);
 
         private:

@@ -16,13 +16,13 @@ namespace ft
         {
         public:
             logic_adapter();
-            ~logic_adapter();
+            virtual ~logic_adapter();
 
-            void on_active(event_layer& layer);
-            void on_read(event_layer& layer, ft::shared_ptr<void>);
-            void on_read_complete(event_layer& layer);
-            void on_error(event_layer& layer, ft::shared_ptr<const std::exception>);
-            void on_inactive(event_layer& layer);
+            virtual void on_active(event_layer& layer);
+            virtual void on_read(event_layer& layer, ft::shared_ptr<void>);
+            virtual void on_read_complete(event_layer& layer);
+            virtual void on_error(event_layer& layer, ft::shared_ptr<const std::exception>);
+            virtual void on_inactive(event_layer& layer);
 
         private:
             logic_adapter(const logic_adapter&);

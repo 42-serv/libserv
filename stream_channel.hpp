@@ -23,7 +23,7 @@ namespace ft
             virtual ~stream_channel();
 
         protected:
-            void begin_read();
+            virtual void begin_read();
 
         private:
             stream_channel(const stream_channel&);

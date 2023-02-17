@@ -26,9 +26,9 @@ namespace ft
 
         public:
             object_decoder();
-            ~object_decoder();
+            virtual ~object_decoder();
 
-            void on_read(event_layer& layer, ft::shared_ptr<void>);
+            virtual void on_read(event_layer& layer, ft::shared_ptr<void>);
 
             virtual void decode(cumulative_list& obj, output_buffer& out);
 
