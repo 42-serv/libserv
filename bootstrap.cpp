@@ -55,7 +55,7 @@ bool ft::serv::bootstrap::start_server(const std::string& host_str, const std::s
     socket_utils::name_socket(boss_ident, host, serv);
     const ft::shared_ptr<event_channel_base> boss = (*this->make_server)(boss_ident, host, serv, this->child_group);
     boss->set_loop(this->boss_group->next());
-    boss->do_register();
+    boss->loop_register();
 
     return true;
 }
@@ -85,7 +85,7 @@ bool ft::serv::bootstrap::start_client(const std::string& host_str, const std::s
     socket_utils::name_socket(child_ident, host, serv);
     const ft::shared_ptr<event_channel_base> child = (*this->make_client)(child_ident, host, serv);
     child->set_loop(this->child_group->next());
-    child->do_register();
+    child->loop_register();
 
     return true;
 }

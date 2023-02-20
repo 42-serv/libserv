@@ -30,8 +30,8 @@ namespace ft
             virtual void on_register(event_layer& layer);
             virtual void on_write(event_layer& layer, ft::shared_ptr<const void>);
             virtual void on_flush(event_layer& layer);
+            virtual void on_finish(event_layer& layer);
             virtual void on_disconnect(event_layer& layer);
-            virtual void on_deregister(event_layer& layer);
 
         private:
             event_handler_base(const event_handler_base&);

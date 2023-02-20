@@ -31,6 +31,7 @@ public:
         static_cast<void>(layer);
 
         this->channel.get_loop()->add_channel(this->channel.shared_from_this());
+        this->channel.get_pipeline()->notify_active();
     }
 
     void on_write(ft::serv::event_layer& layer, ft::shared_ptr<const void> arg)
@@ -48,18 +49,22 @@ public:
         this->channel.flush();
     }
 
+    void on_finish(ft::serv::event_layer& layer)
+    {
+        static_cast<void>(layer);
+
+        // FIXME: why?
+        this->channel.shutdown_output();
+    }
+
     void on_disconnect(ft::serv::event_layer& layer)
     {
         static_cast<void>(layer);
 
-        this->channel.do_deregister();
-    }
-
-    void on_deregister(ft::serv::event_layer& layer)
-    {
-        static_cast<void>(layer);
-
+        // FIXME: why?
+        this->channel.get_pipeline()->notify_inactive();
         this->channel.get_loop()->remove_channel(this->channel.get_ident());
+        // 이 아래는 channel이 유효하지 않을 수 있음.
     }
 
 private:
@@ -150,14 +155,21 @@ int ft::serv::event_channel_base::get_serv() const throw()
     return this->serv;
 }
 
-const ft::shared_ptr<ft::serv::event_layer>& ft::serv::event_channel_base::get_pipeline_head() const throw()
+const ft::shared_ptr<ft::serv::event_layer>& ft::serv::event_channel_base::get_pipeline() const throw()
 {
     return this->pipeline_head;
 }
 
-const ft::shared_ptr<ft::serv::event_layer>& ft::serv::event_channel_base::get_pipeline_tail() const throw()
+void ft::serv::event_channel_base::add_first_handler(const ft::shared_ptr<event_handler_base>& handler)
 {
-    return this->pipeline_tail;
+    const ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
+    this->pipeline_head->set_next(layer);
+}
+
+void ft::serv::event_channel_base::add_last_handler(const ft::shared_ptr<event_handler_base>& handler)
+{
+    const ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
+    this->pipeline_tail->set_prev(layer);
 }
 
 ft::shared_ptr<ft::serv::event_worker> ft::serv::event_channel_base::get_loop() const
@@ -177,8 +189,17 @@ void ft::serv::event_channel_base::set_loop(const ft::shared_ptr<event_worker>& 
     this->loop = loop;
 }
 
+void ft::serv::event_channel_base::loop_register()
+{
+    this->readability_interested = true;
+    this->writability_interested = true;
+    this->pipeline_tail->post_register();
+}
+
 void ft::serv::event_channel_base::load_interested(bool out_interested[2], bool out_changed[2]) const throw()
 {
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
     out_interested[0] = this->readability_interested;
     out_interested[1] = this->writability_interested;
     out_changed[0] = this->readability_enabled != this->readability_interested;
@@ -187,67 +208,70 @@ void ft::serv::event_channel_base::load_interested(bool out_interested[2], bool 
 
 void ft::serv::event_channel_base::store_interested() throw()
 {
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
     this->readability_enabled = this->readability_interested;
     this->writability_enabled = this->writability_interested;
 }
 
 void ft::serv::event_channel_base::trigger_read() throw()
 {
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
     this->begin_read();
 }
 
 void ft::serv::event_channel_base::trigger_write() throw()
 {
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
     this->begin_write();
-}
-
-void ft::serv::event_channel_base::do_register()
-{
-    this->readability_interested = true;
-    this->writability_interested = true;
-    this->pipeline_tail->post_register();
-    // FIXME: after
-    this->pipeline_head->notify_active();
-}
-
-void ft::serv::event_channel_base::do_deregister()
-{
-    this->readability_interested = false;
-    this->writability_interested = false;
-    this->pipeline_head->notify_inactive();
-    // FIXME: after
-    this->pipeline_tail->post_deregister();
-}
-
-void ft::serv::event_channel_base::add_first_handler(const ft::shared_ptr<event_handler_base>& handler)
-{
-    const ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
-    this->pipeline_head->set_next(layer);
-}
-
-void ft::serv::event_channel_base::add_last_handler(const ft::shared_ptr<event_handler_base>& handler)
-{
-    const ft::shared_ptr<event_layer> layer = ft::make_shared<event_layer>(*this, handler);
-    this->pipeline_tail->set_prev(layer);
 }
 
 void ft::serv::event_channel_base::write(const ft::serv::byte_buffer& buf)
 {
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
     this->written_buf.append_from(buf);
 }
 
 void ft::serv::event_channel_base::flush()
 {
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
     byte_buffer& buf = this->written_buf;
     this->flushed_buf.append_from(buf);
     buf.clear();
     this->begin_write();
 }
 
+void ft::serv::event_channel_base::shutdown_input()
+{
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
+    if (this->input_closed)
+    {
+        return;
+    }
+    this->input_closed = true;
+
+    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
+    pipeline->notify_error(ft::make_shared<orderly_shutdown>());
+    this->readability_interested = false;
+    this->get_loop()->watch_ability(*this);
+}
+
+void ft::serv::event_channel_base::shutdown_output()
+{
+    // FIXME: how
+    this->output_closed = true;
+
+    // FIXME: if (this->input_closed && this->output_closed) ...
+}
+
 void ft::serv::event_channel_base::begin_write()
 {
-    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline_head();
-    const ft::shared_ptr<event_layer>& pipeline_back = this->get_pipeline_tail();
+    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
     bool not_yet_completed = false;
     byte_buffer& buf = this->flushed_buf;
     while (!buf.empty())
@@ -262,8 +286,6 @@ void ft::serv::event_channel_base::begin_write()
                 break;
             }
             pipeline->notify_error(ft::make_shared<syscall_failed>(err));
-            pipeline_back->post_disconnect();
-            this->output_closed = true; // FIXME: temporary
             return;
         }
         buf.remove(len);

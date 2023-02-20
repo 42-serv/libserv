@@ -27,8 +27,7 @@ ft::serv::server_channel::~server_channel()
 
 void ft::serv::server_channel::begin_read()
 {
-    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline_head();
-    const ft::shared_ptr<event_layer>& pipeline_back = this->get_pipeline_tail();
+    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
     do
     {
         std::string child_host;
@@ -42,14 +41,13 @@ void ft::serv::server_channel::begin_read()
                 break;
             }
             pipeline->notify_error(ft::make_shared<syscall_failed>(err));
-            pipeline_back->post_disconnect();
             return;
         }
         const ft::shared_ptr<ft::serv::event_channel_base> child = this->make_child(child_ident, child_host, child_serv);
         ft::serv::socket_utils::set_nonblocking(child_ident, true);
         pipeline->notify_read(child);
         child->set_loop(this->group->next());
-        child->do_register();
+        child->loop_register();
     } while (!0);
     pipeline->notify_read_complete();
 }

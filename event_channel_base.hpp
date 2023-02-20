@@ -49,11 +49,14 @@ namespace ft
             ident_t get_ident() const throw();
             const std::string& get_host() const throw();
             int get_serv() const throw();
-            const ft::shared_ptr<event_layer>& get_pipeline_head() const throw();
-            const ft::shared_ptr<event_layer>& get_pipeline_tail() const throw();
+
+            const ft::shared_ptr<event_layer>& get_pipeline() const throw();
+            void add_first_handler(const ft::shared_ptr<event_handler_base>&);
+            void add_last_handler(const ft::shared_ptr<event_handler_base>&);
 
             ft::shared_ptr<ft::serv::event_worker> get_loop() const;
             void set_loop(const ft::shared_ptr<event_worker>&);
+            void loop_register();
 
             void load_interested(bool out_interested[2], bool out_changed[2]) const throw();
             void store_interested() throw();
@@ -61,14 +64,11 @@ namespace ft
             void trigger_read() throw();
             void trigger_write() throw();
 
-            void do_register();
-            void do_deregister();
-
-            void add_first_handler(const ft::shared_ptr<event_handler_base>&);
-            void add_last_handler(const ft::shared_ptr<event_handler_base>&);
-
             void write(const ft::serv::byte_buffer&);
             void flush();
+
+            void shutdown_input();
+            void shutdown_output();
 
         protected:
             virtual void begin_read() = 0;

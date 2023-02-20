@@ -26,8 +26,7 @@ ft::serv::stream_channel::~stream_channel()
 
 void ft::serv::stream_channel::begin_read()
 {
-    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline_head();
-    const ft::shared_ptr<event_layer>& pipeline_back = this->get_pipeline_tail();
+    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
     bool orderly_shutdown = false;
     do
     {
@@ -41,7 +40,6 @@ void ft::serv::stream_channel::begin_read()
                 break;
             }
             pipeline->notify_error(ft::make_shared<syscall_failed>(err));
-            pipeline_back->post_disconnect();
             return;
         }
         if (len == 0)
@@ -55,8 +53,6 @@ void ft::serv::stream_channel::begin_read()
     pipeline->notify_read_complete();
     if (orderly_shutdown)
     {
-        // FIXME: handle orderly shutdown
-        // this->input_closed = true;
-        pipeline_back->post_disconnect(); // FIXME: temporary
+        this->shutdown_input();
     }
 }

@@ -58,12 +58,12 @@ void ft::serv::event_handler_base::on_flush(event_layer& layer)
     layer.post_flush();
 }
 
+void ft::serv::event_handler_base::on_finish(event_layer& layer)
+{
+    layer.post_finish();
+}
+
 void ft::serv::event_handler_base::on_disconnect(event_layer& layer)
 {
     layer.post_disconnect();
-}
-
-void ft::serv::event_handler_base::on_deregister(event_layer& layer)
-{
-    layer.post_deregister();
 }

@@ -44,5 +44,13 @@ namespace ft
 
             error_t error() const throw() { return this->e; }
         };
+
+        class orderly_shutdown : public std::exception
+        {
+        public:
+            orderly_shutdown() throw() {}
+            virtual ~orderly_shutdown() throw() {}
+            virtual const char* what() const throw() { return "orderly shutdown"; }
+        };
     }
 }

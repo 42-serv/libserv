@@ -43,8 +43,8 @@ namespace ft
             void do_register();
             void do_write(ft::shared_ptr<const void>);
             void do_flush();
+            void do_finish();
             void do_disconnect();
-            void do_deregister();
 
         private:
             void invoke_on_active();
@@ -56,8 +56,8 @@ namespace ft
             void invoke_do_register();
             void invoke_do_write(ft::shared_ptr<const void>);
             void invoke_do_flush();
+            void invoke_do_finish();
             void invoke_do_disconnect();
-            void invoke_do_deregister();
 
         public:
             void notify_active();
@@ -69,8 +69,8 @@ namespace ft
             void post_register();
             void post_write(ft::shared_ptr<const void>);
             void post_flush();
+            void post_finish();
             void post_disconnect();
-            void post_deregister();
 
         private:
             event_layer(const event_layer&);

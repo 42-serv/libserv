@@ -90,14 +90,14 @@ void ft::serv::event_layer::do_flush()
     this->handler->on_flush(*this);
 }
 
+void ft::serv::event_layer::do_finish()
+{
+    this->handler->on_finish(*this);
+}
+
 void ft::serv::event_layer::do_disconnect()
 {
     this->handler->on_disconnect(*this);
-}
-
-void ft::serv::event_layer::do_deregister()
-{
-    this->handler->on_deregister(*this);
 }
 
 typedef void (ft::serv::event_layer::*member_function_pointer)(void);
@@ -243,6 +243,20 @@ void ft::serv::event_layer::invoke_do_flush()
     }
 }
 
+void ft::serv::event_layer::invoke_do_finish()
+{
+    const ft::shared_ptr<event_worker> loop = this->channel.get_loop();
+
+    if (loop->is_in_event_loop())
+    {
+        this->do_finish();
+    }
+    else
+    {
+        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_finish));
+    }
+}
+
 void ft::serv::event_layer::invoke_do_disconnect()
 {
     const ft::shared_ptr<event_worker> loop = this->channel.get_loop();
@@ -254,20 +268,6 @@ void ft::serv::event_layer::invoke_do_disconnect()
     else
     {
         loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_disconnect));
-    }
-}
-
-void ft::serv::event_layer::invoke_do_deregister()
-{
-    const ft::shared_ptr<event_worker> loop = this->channel.get_loop();
-
-    if (loop->is_in_event_loop())
-    {
-        this->do_deregister();
-    }
-    else
-    {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_deregister));
     }
 }
 
@@ -311,12 +311,12 @@ void ft::serv::event_layer::post_flush()
     this->prev.lock()->invoke_do_flush();
 }
 
+void ft::serv::event_layer::post_finish()
+{
+    this->prev.lock()->invoke_do_finish();
+}
+
 void ft::serv::event_layer::post_disconnect()
 {
     this->prev.lock()->invoke_do_disconnect();
-}
-
-void ft::serv::event_layer::post_deregister()
-{
-    this->prev.lock()->invoke_do_deregister();
 }
