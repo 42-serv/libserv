@@ -39,6 +39,7 @@ namespace ft
             bool writability_interested;
             bool readability_enabled;
             bool writability_enabled;
+            bool finished;
             bool input_closed;
             bool output_closed;
 

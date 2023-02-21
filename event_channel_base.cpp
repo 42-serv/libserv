@@ -123,6 +123,7 @@ ft::serv::event_channel_base::event_channel_base(ident_t ident, const std::strin
       writability_interested(),
       readability_enabled(),
       writability_enabled(),
+      finished(),
       input_closed(),
       output_closed()
 {
@@ -229,6 +230,10 @@ void ft::serv::event_channel_base::write(const ft::serv::byte_buffer& buf)
 {
     assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
 
+    if (this->finished)
+    {
+        return;
+    }
     this->written_buf.append_from(buf);
 }
 
@@ -236,6 +241,10 @@ void ft::serv::event_channel_base::flush()
 {
     assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
 
+    if (this->finished)
+    {
+        return;
+    }
     byte_buffer& buf = this->written_buf;
     this->flushed_buf.append_from(buf);
     buf.clear();
@@ -246,7 +255,11 @@ void ft::serv::event_channel_base::finish()
 {
     assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
 
-    socket_utils::finish_socket(this->get_ident());
+    if (this->finished)
+    {
+        return;
+    }
+    this->finished = true;
 }
 
 void ft::serv::event_channel_base::shutdown_input()
@@ -298,7 +311,7 @@ void ft::serv::event_channel_base::shutdown_output()
         // if remaining flushed entries
         // ...
         // else
-        // socket_utils::finish_socket(this->get_ident()); // FIXME: ???
+        socket_utils::finish_socket(this->get_ident());
         this->writability_interested = false;
         worker->watch_ability(*this);
     }
@@ -328,4 +341,8 @@ void ft::serv::event_channel_base::begin_write()
     buf.discard();
     this->writability_interested = not_yet_completed;
     this->get_loop()->watch_ability(*this);
+    if (this->finished && !this->writability_interested)
+    {
+        this->shutdown_output();
+    }
 }
