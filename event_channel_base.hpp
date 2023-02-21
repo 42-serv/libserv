@@ -66,6 +66,7 @@ namespace ft
 
             void write(const ft::serv::byte_buffer&);
             void flush();
+            void finish();
 
             void shutdown_input();
             void shutdown_output();

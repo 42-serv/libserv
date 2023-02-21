@@ -53,8 +53,7 @@ public:
     {
         static_cast<void>(layer);
 
-        // FIXME: why?
-        this->channel.shutdown_output();
+        this->channel.finish();
     }
 
     void on_disconnect(ft::serv::event_layer& layer)
@@ -62,9 +61,7 @@ public:
         static_cast<void>(layer);
 
         // FIXME: why?
-        this->channel.get_pipeline()->notify_inactive();
-        this->channel.get_loop()->remove_channel(this->channel.get_ident());
-        // 이 아래는 channel이 유효하지 않을 수 있음.
+        this->channel.shutdown_input();
     }
 
 private:
@@ -245,6 +242,13 @@ void ft::serv::event_channel_base::flush()
     this->begin_write();
 }
 
+void ft::serv::event_channel_base::finish()
+{
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
+    socket_utils::finish_socket(this->get_ident());
+}
+
 void ft::serv::event_channel_base::shutdown_input()
 {
     assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
@@ -255,18 +259,49 @@ void ft::serv::event_channel_base::shutdown_input()
     }
     this->input_closed = true;
 
+    const ft::shared_ptr<event_worker>& worker = this->get_loop();
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
-    pipeline->notify_error(ft::make_shared<orderly_shutdown>());
-    this->readability_interested = false;
-    this->get_loop()->watch_ability(*this);
+    if (this->input_closed && this->output_closed)
+    {
+        pipeline->notify_inactive();
+        worker->remove_channel(this->get_ident());
+        // 이 아래는 channel이 유효하지 않을 수 있음.
+    }
+    else
+    {
+        pipeline->notify_error(ft::make_shared<orderly_shutdown>());
+        this->readability_interested = false;
+        worker->watch_ability(*this);
+    }
 }
 
 void ft::serv::event_channel_base::shutdown_output()
 {
-    // FIXME: how
+    assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
+
+    if (this->output_closed)
+    {
+        return;
+    }
     this->output_closed = true;
 
-    // FIXME: if (this->input_closed && this->output_closed) ...
+    const ft::shared_ptr<event_worker>& worker = this->get_loop();
+    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
+    if (this->input_closed && this->output_closed)
+    {
+        pipeline->notify_inactive();
+        worker->remove_channel(this->get_ident());
+        // 이 아래는 channel이 유효하지 않을 수 있음.
+    }
+    else
+    {
+        // if remaining flushed entries
+        // ...
+        // else
+        // socket_utils::finish_socket(this->get_ident()); // FIXME: ???
+        this->writability_interested = false;
+        worker->watch_ability(*this);
+    }
 }
 
 void ft::serv::event_channel_base::begin_write()

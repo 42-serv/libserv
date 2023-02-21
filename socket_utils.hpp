@@ -192,6 +192,15 @@ namespace ft
                 return value;
             }
 
+            static inline void finish_socket(const ident_t socket) throw()
+            {
+                if (::shutdown(socket, SHUT_WR) < 0)
+                {
+                    const syscall_failed e;
+                    // ignore
+                }
+            }
+
             static inline void close_socket(const ident_t socket) throw()
             {
                 if (::close(socket) < 0)
