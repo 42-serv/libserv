@@ -1,5 +1,5 @@
 .SUFFIXES: .cpp .o .hpp .h .tpp
-.PHONY: all clean fclean re bonus
+.PHONY: all clean cleanobj cleanbin re
 
 CXX = c++
 RM = rm -f
@@ -78,8 +78,8 @@ re: clean	;	$(MAKE)
 $(OBJECTS_DIR):
 	mkdir $(OBJECTS_DIR)
 
-$(addprefix $(OBJECTS_DIR), %.o): %.cpp | $(OBJECTS_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@ $(LDFLAGS)
+$(OBJECTS_DIR)%.o: %.cpp | $(OBJECTS_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJECTS)
 	$(AR) $(ARFLAGS) $@ $?
