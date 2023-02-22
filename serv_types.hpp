@@ -42,6 +42,12 @@ namespace ft
             typedef std::deque<T> type;
         };
     }
+
+    struct nothing
+    {
+        template <typename T>
+        void operator()(T*) {}
+    };
 }
 
 #define foreach(_type, _name, _coll) for (_type _name = (_coll).begin(); _name != (_coll).end(); ++_name)

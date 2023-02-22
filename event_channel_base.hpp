@@ -77,6 +77,9 @@ namespace ft
             virtual void begin_write();
 
         private:
+            void shutdown_half(bool input_or_output);
+
+        private:
             event_channel_base(const event_channel_base&);
             event_channel_base& operator=(const event_channel_base&);
         };

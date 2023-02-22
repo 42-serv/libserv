@@ -27,7 +27,7 @@ ft::serv::stream_channel::~stream_channel()
 void ft::serv::stream_channel::begin_read()
 {
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
-    bool orderly_shutdown = false;
+    bool gracefully_shutdown = false;
     do
     {
         const ft::shared_ptr<byte_buffer> buf = ft::make_shared<byte_buffer>(this->init_buf_capacity);
@@ -44,15 +44,16 @@ void ft::serv::stream_channel::begin_read()
         }
         if (len == 0)
         {
-            orderly_shutdown = true;
+            gracefully_shutdown = true;
             break;
         }
         buf->raw_shrink(len);
         pipeline->notify_read(buf);
     } while (!0);
     pipeline->notify_read_complete();
-    if (orderly_shutdown)
+    if (gracefully_shutdown)
     {
         this->shutdown_input();
+        pipeline->notify_error(ft::make_shared<orderly_shutdown>());
     }
 }

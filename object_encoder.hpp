@@ -27,6 +27,7 @@ namespace ft
 
             virtual void on_write(event_layer& layer, ft::shared_ptr<const void>);
 
+        protected:
             virtual void encode(const ft::shared_ptr<const void>& out, output_buffer& target);
 
         private:

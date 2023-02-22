@@ -248,7 +248,7 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
             static_cast<void>(r);
             continue;
         }
-        const ft::shared_ptr<event_channel_base>& channel = it_channel->second;
+        ft::shared_ptr<event_channel_base> channel = it_channel->second; // lock ref count
 
         if (evi.events & (EPOLLOUT | EPOLLERR))
         {

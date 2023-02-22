@@ -30,6 +30,7 @@ namespace ft
             void on_read(event_layer& layer, ft::shared_ptr<void>);
             void on_read_complete(event_layer& layer);
 
+        protected:
             virtual void decode(byte_buffer& buf, output_buffer& out);
 
         private:

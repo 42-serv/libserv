@@ -19,12 +19,11 @@ ft::serv::object_decoder::~object_decoder()
 
 void ft::serv::object_decoder::on_read(event_layer& layer, ft::shared_ptr<void> obj)
 {
-    assert(this->output.empty());
-
     this->cumulative_obj.push_back(obj);
 
     do
     {
+        this->output.clear();
         const output_buffer::size_type size_prev = this->cumulative_obj.size();
         this->decode(this->cumulative_obj, this->output);
         if (this->cumulative_obj.size() == size_prev)
@@ -40,8 +39,8 @@ void ft::serv::object_decoder::on_read(event_layer& layer, ft::shared_ptr<void> 
         {
             layer.notify_read(*it);
         }
-        this->output.clear();
     } while (!0);
+    this->output.clear();
 }
 
 void ft::serv::object_decoder::decode(cumulative_list&, output_buffer&)

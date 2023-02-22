@@ -22,8 +22,6 @@ ft::serv::bytes_decoder::~bytes_decoder()
 
 void ft::serv::bytes_decoder::on_read(event_layer& layer, ft::shared_ptr<void> arg)
 {
-    assert(this->output.empty());
-
     const ft::shared_ptr<byte_buffer> buf = ft::static_pointer_cast<byte_buffer>(arg);
     if (this->cumulative_buf.empty())
     {
@@ -36,6 +34,7 @@ void ft::serv::bytes_decoder::on_read(event_layer& layer, ft::shared_ptr<void> a
 
     do
     {
+        this->output.clear();
         const byte_buffer::size_type size_prev = this->cumulative_buf.size();
         this->decode(this->cumulative_buf, this->output);
         if (this->cumulative_buf.size() == size_prev)
@@ -51,8 +50,8 @@ void ft::serv::bytes_decoder::on_read(event_layer& layer, ft::shared_ptr<void> a
         {
             layer.notify_read(*it);
         }
-        this->output.clear();
     } while (!0);
+    this->output.clear();
 }
 
 void ft::serv::bytes_decoder::on_read_complete(event_layer& layer)

@@ -7,6 +7,7 @@
 #include "event_handler_base.hpp"
 #include "event_layer.hpp"
 #include "event_worker.hpp"
+#include "logger.hpp"
 #include "serv_types.hpp"
 #include "socket_utils.hpp"
 
@@ -60,7 +61,7 @@ public:
     {
         static_cast<void>(layer);
 
-        // FIXME: why?
+        this->channel.shutdown_output();
         this->channel.shutdown_input();
     }
 
@@ -216,14 +217,44 @@ void ft::serv::event_channel_base::trigger_read() throw()
 {
     assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
 
-    this->begin_read();
+    try
+    {
+        this->begin_read();
+    }
+    catch (const std::exception& e)
+    {
+        const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
+        try
+        {
+            pipeline->notify_error(ft::shared_ptr<const std::exception>(&e, ft::nothing()));
+        }
+        catch (...)
+        {
+            logger::error("double fault on trigger_read");
+        }
+    }
 }
 
 void ft::serv::event_channel_base::trigger_write() throw()
 {
     assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
 
-    this->begin_write();
+    try
+    {
+        this->begin_write();
+    }
+    catch (const std::exception& e)
+    {
+        const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
+        try
+        {
+            pipeline->notify_error(ft::shared_ptr<const std::exception>(&e, ft::nothing()));
+        }
+        catch (...)
+        {
+            logger::error("double fault on trigger_write");
+        }
+    }
 }
 
 void ft::serv::event_channel_base::write(const ft::serv::byte_buffer& buf)
@@ -271,21 +302,7 @@ void ft::serv::event_channel_base::shutdown_input()
         return;
     }
     this->input_closed = true;
-
-    const ft::shared_ptr<event_worker>& worker = this->get_loop();
-    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
-    if (this->input_closed && this->output_closed)
-    {
-        pipeline->notify_inactive();
-        worker->remove_channel(this->get_ident());
-        // 이 아래는 channel이 유효하지 않을 수 있음.
-    }
-    else
-    {
-        pipeline->notify_error(ft::make_shared<orderly_shutdown>());
-        this->readability_interested = false;
-        worker->watch_ability(*this);
-    }
+    this->shutdown_half(true);
 }
 
 void ft::serv::event_channel_base::shutdown_output()
@@ -297,28 +314,13 @@ void ft::serv::event_channel_base::shutdown_output()
         return;
     }
     this->output_closed = true;
-
-    const ft::shared_ptr<event_worker>& worker = this->get_loop();
-    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
-    if (this->input_closed && this->output_closed)
-    {
-        pipeline->notify_inactive();
-        worker->remove_channel(this->get_ident());
-        // 이 아래는 channel이 유효하지 않을 수 있음.
-    }
-    else
-    {
-        // if remaining flushed entries
-        // ...
-        // else
-        socket_utils::finish_socket(this->get_ident());
-        this->writability_interested = false;
-        worker->watch_ability(*this);
-    }
+    this->shutdown_half(false);
+    socket_utils::finish_socket(this->get_ident());
 }
 
 void ft::serv::event_channel_base::begin_write()
 {
+    const ft::shared_ptr<event_worker>& worker = this->get_loop();
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
     bool not_yet_completed = false;
     byte_buffer& buf = this->flushed_buf;
@@ -340,9 +342,32 @@ void ft::serv::event_channel_base::begin_write()
     }
     buf.discard();
     this->writability_interested = not_yet_completed;
-    this->get_loop()->watch_ability(*this);
+    worker->watch_ability(*this);
     if (this->finished && !this->writability_interested)
     {
         this->shutdown_output();
+    }
+}
+
+void ft::serv::event_channel_base::shutdown_half(bool input_or_output)
+{
+    const ft::shared_ptr<event_worker>& worker = this->get_loop();
+    const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
+    if (this->input_closed && this->output_closed)
+    {
+        pipeline->notify_inactive();
+        worker->remove_channel(this->get_ident());
+    }
+    else
+    {
+        if (input_or_output)
+        {
+            this->readability_interested = false;
+        }
+        else
+        {
+            this->writability_interested = false;
+        }
+        worker->watch_ability(*this);
     }
 }

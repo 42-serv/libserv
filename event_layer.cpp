@@ -27,6 +27,21 @@ ft::serv::event_layer::~event_layer()
 {
 }
 
+ft::serv::ident_t ft::serv::event_layer::get_ident() const throw()
+{
+    return this->channel.get_ident();
+}
+
+const std::string& ft::serv::event_layer::get_host() const throw()
+{
+    return this->channel.get_host();
+}
+
+int ft::serv::event_layer::get_serv() const throw()
+{
+    return this->channel.get_serv();
+}
+
 void ft::serv::event_layer::set_next(const ft::shared_ptr<event_layer>& next)
 {
     if (this->next)

@@ -22,8 +22,7 @@ ft::serv::object_encoder::~object_encoder()
 
 void ft::serv::object_encoder::on_write(event_layer& layer, ft::shared_ptr<const void> arg)
 {
-    assert(this->temp.empty());
-
+    this->temp.clear();
     this->encode(arg, this->temp);
     foreach (output_buffer::iterator, it, this->temp)
     {

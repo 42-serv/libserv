@@ -10,6 +10,7 @@
 #include <smart_ptr/weak_ptr.hpp>
 
 #include <exception>
+#include <string>
 
 namespace ft
 {
@@ -30,6 +31,10 @@ namespace ft
             ~event_layer();
 
         public:
+            ident_t get_ident() const throw();
+            const std::string& get_host() const throw();
+            int get_serv() const throw();
+
             void set_next(const ft::shared_ptr<event_layer>& next);
             void set_prev(const ft::shared_ptr<event_layer>& prev);
 
