@@ -335,3 +335,10 @@ void ft::serv::event_layer::post_disconnect()
 {
     this->prev.lock()->invoke_do_disconnect();
 }
+
+void ft::serv::event_layer::invoke_task(const ft::shared_ptr<task_base>& task) const
+{
+    const ft::shared_ptr<event_worker> loop = this->channel.get_loop();
+
+    loop->offer_task(task);
+}

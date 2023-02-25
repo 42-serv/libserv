@@ -18,6 +18,10 @@ namespace ft
     {
         class event_channel_base;
 
+        class event_worker;
+
+        class task_base;
+
         class event_layer
         {
         private:
@@ -76,6 +80,9 @@ namespace ft
             void post_flush();
             void post_finish();
             void post_disconnect();
+
+        public:
+            void invoke_task(const ft::shared_ptr<task_base>& task) const;
 
         private:
             event_layer(const event_layer&);
