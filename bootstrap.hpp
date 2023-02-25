@@ -19,8 +19,8 @@ namespace ft
         class bootstrap
         {
         public:
-            typedef ft::shared_ptr<event_channel_base> (*make_server_t)(ident_t ident, const std::string& host, int serv, const ft::shared_ptr<event_worker_group>& child_group);
-            typedef ft::shared_ptr<event_channel_base> (*make_client_t)(ident_t ident, const std::string& host, int serv);
+            typedef ft::shared_ptr<event_channel_base> (*make_server_t)(ident_t ident, const std::string& host, int serv, const ft::shared_ptr<event_worker_group>& child_group, void* arg);
+            typedef ft::shared_ptr<event_channel_base> (*make_client_t)(ident_t ident, const std::string& host, int serv, void* arg);
 
         private:
             ft::shared_ptr<event_worker_group> boss_group;
@@ -33,8 +33,8 @@ namespace ft
             ~bootstrap();
 
         public:
-            bool start_server(const std::string& host_str, const std::string& serv_str);
-            bool start_client(const std::string& host_str, const std::string& serv_str);
+            bool start_server(const std::string& host_str, const std::string& serv_str, void* arg);
+            bool start_client(const std::string& host_str, const std::string& serv_str, void* arg);
 
         private:
             bootstrap(const bootstrap&);

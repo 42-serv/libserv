@@ -29,7 +29,7 @@ ft::serv::bootstrap::~bootstrap()
     child_group->join_all();
 }
 
-bool ft::serv::bootstrap::start_server(const std::string& host_str, const std::string& serv_str)
+bool ft::serv::bootstrap::start_server(const std::string& host_str, const std::string& serv_str, void* arg)
 {
     assert(this->make_server);
 
@@ -53,14 +53,14 @@ bool ft::serv::bootstrap::start_server(const std::string& host_str, const std::s
     std::string host;
     int serv;
     socket_utils::name_socket(boss_ident, host, serv);
-    const ft::shared_ptr<event_channel_base> boss = (*this->make_server)(boss_ident, host, serv, this->child_group);
+    const ft::shared_ptr<event_channel_base> boss = (*this->make_server)(boss_ident, host, serv, this->child_group, arg);
     boss->set_loop(this->boss_group->next());
     boss->loop_register();
 
     return true;
 }
 
-bool ft::serv::bootstrap::start_client(const std::string& host_str, const std::string& serv_str)
+bool ft::serv::bootstrap::start_client(const std::string& host_str, const std::string& serv_str, void* arg)
 {
     assert(this->make_client);
 
@@ -83,7 +83,7 @@ bool ft::serv::bootstrap::start_client(const std::string& host_str, const std::s
     std::string host;
     int serv;
     socket_utils::name_socket(child_ident, host, serv);
-    const ft::shared_ptr<event_channel_base> child = (*this->make_client)(child_ident, host, serv);
+    const ft::shared_ptr<event_channel_base> child = (*this->make_client)(child_ident, host, serv, arg);
     child->set_loop(this->child_group->next());
     child->loop_register();
 
