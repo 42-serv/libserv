@@ -240,13 +240,8 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
         }
         else if (evi.filter == EVFILT_READ)
         {
-            // TODO: use `evi.data`
+            // can use `evi.data`, `evi.flags & EV_EOF`
             channel->trigger_read();
-        }
-
-        if (evi.flags & EV_EOF)
-        {
-            // TODO: trigger_read_eof, RDHUP?
         }
     }
 }

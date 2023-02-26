@@ -257,13 +257,7 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
 
         if (evi.events & (EPOLLIN | EPOLLERR))
         {
-            // TODO: use `evi.data`
             channel->trigger_read();
-        }
-
-        if (evi.events & EPOLLRDHUP)
-        {
-            // TODO: trigger_read_eof, RDHUP?
         }
     }
 }

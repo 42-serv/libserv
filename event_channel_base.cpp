@@ -341,11 +341,14 @@ void ft::serv::event_channel_base::begin_write()
         buf.remove(len);
     }
     buf.discard();
-    this->writability_interested = not_yet_completed;
-    worker->watch_ability(*this);
     if (this->finished && !this->writability_interested)
     {
         this->shutdown_output();
+    }
+    else
+    {
+        this->writability_interested = not_yet_completed;
+        worker->watch_ability(*this);
     }
 }
 
