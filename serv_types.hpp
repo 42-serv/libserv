@@ -14,6 +14,7 @@
 
 #include <deque>
 #include <map>
+#include <set>
 #include <vector>
 
 namespace ft
@@ -40,6 +41,12 @@ namespace ft
         struct dynamic_buffer
         {
             typedef std::deque<T> type;
+        };
+
+        template <typename T>
+        struct unique_set
+        {
+            typedef std::set<T> type;
         };
     }
 
