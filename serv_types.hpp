@@ -34,7 +34,7 @@ namespace ft
         template <typename K, typename V>
         struct fast_dictionary
         {
-            typedef std::map<K, V> type; // unordered_map, flat_map
+            typedef std::map<K, V> type; // flat_map
         };
 
         template <typename T>
@@ -46,7 +46,7 @@ namespace ft
         template <typename T>
         struct unique_set
         {
-            typedef std::set<T> type;
+            typedef std::set<T> type; // unordered_set
         };
     }
 
