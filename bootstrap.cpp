@@ -29,11 +29,16 @@ ft::serv::bootstrap::~bootstrap()
     child_group->join_all();
 }
 
+static const char* _to_c_str_nullable(const std::string& str)
+{
+    return str.empty() ? null : str.c_str();
+}
+
 bool ft::serv::bootstrap::start_server(const std::string& host_str, const std::string& serv_str, void* arg)
 {
     assert(this->make_server);
 
-    const ident_t boss_ident = socket_utils::bind_socket(host_str.c_str(), serv_str.c_str());
+    const ident_t boss_ident = socket_utils::bind_socket(_to_c_str_nullable(host_str), _to_c_str_nullable(serv_str));
     if (boss_ident < 0)
     {
         return false;
@@ -64,7 +69,7 @@ bool ft::serv::bootstrap::start_client(const std::string& host_str, const std::s
 {
     assert(this->make_client);
 
-    const ident_t child_ident = ft::serv::socket_utils::connect_socket(host_str.c_str(), serv_str.c_str());
+    const ident_t child_ident = ft::serv::socket_utils::connect_socket(_to_c_str_nullable(host_str), _to_c_str_nullable(serv_str));
     if (child_ident < 0)
     {
         return false;
