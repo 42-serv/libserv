@@ -42,6 +42,9 @@ namespace ft
             void set_next(const ft::shared_ptr<event_layer>& next);
             void set_prev(const ft::shared_ptr<event_layer>& prev);
 
+            ft::shared_ptr<event_layer> shared_from_channel() throw();
+            ft::shared_ptr<const event_layer> shared_from_channel() const throw();
+
         private:
             void on_active();
             void on_read(ft::shared_ptr<void>);

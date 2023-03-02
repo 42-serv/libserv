@@ -65,6 +65,16 @@ void ft::serv::event_layer::set_prev(const ft::shared_ptr<event_layer>& prev)
     this->prev = prev;
 }
 
+ft::shared_ptr<ft::serv::event_layer> ft::serv::event_layer::shared_from_channel() throw()
+{
+    return ft::shared_ptr<ft::serv::event_layer>(this->channel.shared_from_this(), this);
+}
+
+ft::shared_ptr<const ft::serv::event_layer> ft::serv::event_layer::shared_from_channel() const throw()
+{
+    return ft::shared_ptr<const ft::serv::event_layer>(this->channel.shared_from_this(), this);
+}
+
 void ft::serv::event_layer::on_active()
 {
     this->handler->on_active(*this);
