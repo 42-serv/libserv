@@ -33,6 +33,8 @@ namespace ft
         typedef dynamic_array<struct ::epoll_event>::type event_list;
 
         static const event_list::size_type MAX_EVENTS = FT_SERV_MAX_EVENT_SIZE;
+        static const ::eventfd_t EVFD_NORMAL = 1;
+        static const ::eventfd_t EVFD_SHUTDOWN = 2;
 
         static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel_base& channel) throw()
         {
@@ -155,10 +157,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 void ft::serv::event_worker::loop()
 {
     this->working_thread = ft::thread::self();
-    synchronized (this->lock)
-    {
-        this->active = true;
-    }
+    this->active = true;
     this->cond.notify_all();
 
     event_list events;
@@ -213,11 +212,17 @@ void ft::serv::event_worker::wake_up() throw()
 {
     if (!this->is_in_event_loop())
     {
-        ::eventfd_t value = 1;
-        const int r = ::eventfd_write(this->event_ident, value);
+        const int r = ::eventfd_write(this->event_ident, EVFD_NORMAL);
         // ignore errors
         static_cast<void>(r);
     }
+}
+
+void ft::serv::event_worker::shutdown_loop() throw()
+{
+    const int r = ::eventfd_write(this->event_ident, EVFD_SHUTDOWN);
+    // ignore errors
+    static_cast<void>(r);
 }
 
 void ft::serv::event_worker::process_events(void* list, int n) throw()
@@ -234,6 +239,11 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
             // wakeup?
             ::eventfd_t value;
             const int r = ::eventfd_read(evi.data.fd, &value);
+            if (r == EVFD_SHUTDOWN)
+            {
+                this->active = false;
+                break;
+            }
             // ignore errors
             static_cast<void>(r);
             continue;

@@ -17,7 +17,9 @@ ft::serv::bootstrap::bootstrap(const ft::shared_ptr<event_worker_group>& boss_gr
     : boss_group(boss_group),
       child_group(child_group),
       make_server(make_server),
-      make_client(make_client)
+      make_client(make_client),
+      success(),
+      ended()
 {
     boss_group->wait_all();
     child_group->wait_all();
@@ -25,8 +27,7 @@ ft::serv::bootstrap::bootstrap(const ft::shared_ptr<event_worker_group>& boss_gr
 
 ft::serv::bootstrap::~bootstrap()
 {
-    boss_group->join_all();
-    child_group->join_all();
+    this->finalize();
 }
 
 static const char* _to_c_str_nullable(const std::string& str)
@@ -93,4 +94,24 @@ bool ft::serv::bootstrap::start_client(const std::string& host_str, const std::s
     child->loop_register();
 
     return true;
+}
+
+void ft::serv::bootstrap::set_success()
+{
+    this->success = true;
+}
+
+void ft::serv::bootstrap::finalize()
+{
+    if (!this->ended)
+    {
+        this->ended = true;
+        if (!this->success)
+        {
+            this->boss_group->shutdown_all();
+            this->child_group->shutdown_all();
+        }
+        this->boss_group->join_all();
+        this->child_group->join_all();
+    }
 }

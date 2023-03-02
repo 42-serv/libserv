@@ -27,15 +27,6 @@ void ft::serv::event_worker::offer_task(const ft::shared_ptr<task_base>& task)
     }
 }
 
-void ft::serv::event_worker::shutdown_loop() throw()
-{
-    synchronized (this->lock)
-    {
-        this->active = false;
-    }
-    this->wake_up();
-}
-
 void ft::serv::event_worker::wait_for_loop()
 {
     synchronized (this->lock)
@@ -56,14 +47,13 @@ bool ft::serv::event_worker::is_in_event_loop() throw()
 
 bool ft::serv::event_worker::execute_tasks() throw()
 {
-    bool in_progress;
-    task_list snapshot;
+    const bool in_progress = this->active;
 
+    task_list snapshot;
     synchronized (this->lock)
     {
         this->tasks.swap(snapshot);
 
-        in_progress = this->active;
         if (!in_progress)
         {
             this->task_closed = true;

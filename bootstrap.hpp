@@ -27,6 +27,8 @@ namespace ft
             ft::shared_ptr<event_worker_group> child_group;
             make_server_t make_server;
             make_client_t make_client;
+            bool success;
+            bool ended;
 
         public:
             bootstrap(const ft::shared_ptr<event_worker_group>& boss_group, const ft::shared_ptr<event_worker_group>& child_group, make_server_t make_server, make_client_t make_client);
@@ -35,6 +37,8 @@ namespace ft
         public:
             bool start_server(const std::string& host_str, const std::string& serv_str, void* arg);
             bool start_client(const std::string& host_str, const std::string& serv_str, void* arg);
+            void set_success();
+            void finalize();
 
         private:
             bootstrap(const bootstrap&);

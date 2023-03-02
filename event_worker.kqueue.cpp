@@ -32,6 +32,12 @@ namespace ft
         typedef dynamic_array<struct ::kevent>::type event_list;
 
         static const event_list::size_type MAX_EVENTS = FT_SERV_MAX_EVENT_SIZE;
+        enum
+        {
+            USER_EVENT_WAKEUP,
+            USER_EVENT_SHUTDOWN,
+            NUMBER_OF_USER_EVENT
+        };
     }
 }
 
@@ -52,8 +58,11 @@ ft::serv::event_worker::event_worker()
         throw syscall_failed();
     }
 
-    struct ::kevent change[1];
-    EV_SET(&change[0], this->event_ident, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
+    struct ::kevent change[NUMBER_OF_USER_EVENT];
+    for (std::size_t i = 0; i < countof(change); i++)
+    {
+        EV_SET(&change[i], this->event_ident + i, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_FFNOP, 0, null);
+    }
     if (::kevent(this->loop_ident, beginof(change), countof(change), null, 0, null) < 0)
     {
         const syscall_failed e;
@@ -127,10 +136,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 void ft::serv::event_worker::loop()
 {
     this->working_thread = ft::thread::self();
-    synchronized (this->lock)
-    {
-        this->active = true;
-    }
+    this->active = true;
     this->cond.notify_all();
 
     event_list events;
@@ -192,7 +198,7 @@ void ft::serv::event_worker::wake_up() throw()
     if (!this->is_in_event_loop())
     {
         struct ::kevent change[1];
-        EV_SET(&change[0], this->event_ident, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
+        EV_SET(&change[0], this->event_ident + USER_EVENT_WAKEUP, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
         if (::kevent(this->loop_ident, beginof(change), countof(change), null, 0, null) < 0)
         {
             const syscall_failed e;
@@ -200,6 +206,20 @@ void ft::serv::event_worker::wake_up() throw()
             {
                 // ignore errors
             }
+        }
+    }
+}
+
+void ft::serv::event_worker::shutdown_loop() throw()
+{
+    struct ::kevent change[1];
+    EV_SET(&change[0], this->event_ident + USER_EVENT_SHUTDOWN, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
+    if (::kevent(this->loop_ident, beginof(change), countof(change), null, 0, null) < 0)
+    {
+        const syscall_failed e;
+        if (e.error() != EINTR)
+        {
+            // ignore errors
         }
     }
 }
@@ -215,6 +235,11 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
 
         if (evi.filter == EVFILT_USER)
         {
+            if (static_cast<ident_t>(evi.ident) == this->event_ident + USER_EVENT_SHUTDOWN)
+            {
+                this->active = false;
+                break;
+            }
             // wakeup?
             continue;
         }

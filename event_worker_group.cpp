@@ -52,7 +52,7 @@ void ft::serv::event_worker_group::wait_all()
     }
 }
 
-void ft::serv::event_worker_group::shutdown_all()
+void ft::serv::event_worker_group::shutdown_all() throw()
 {
     assert(!this->loops.empty());
 
