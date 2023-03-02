@@ -157,7 +157,10 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 void ft::serv::event_worker::loop()
 {
     this->working_thread = ft::thread::self();
-    this->active = true;
+    synchronized (this->lock)
+    {
+        this->active = true;
+    }
     this->cond.notify_all();
 
     event_list events;
@@ -239,9 +242,12 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
             // wakeup?
             ::eventfd_t value;
             const int r = ::eventfd_read(evi.data.fd, &value);
-            if (r == EVFD_SHUTDOWN)
+            if (value == EVFD_SHUTDOWN)
             {
-                this->active = false;
+                synchronized (this->lock)
+                {
+                    this->active = false;
+                }
                 break;
             }
             // ignore errors

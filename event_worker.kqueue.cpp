@@ -136,7 +136,10 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 void ft::serv::event_worker::loop()
 {
     this->working_thread = ft::thread::self();
-    this->active = true;
+    synchronized (this->lock)
+    {
+        this->active = true;
+    }
     this->cond.notify_all();
 
     event_list events;
@@ -237,7 +240,10 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
         {
             if (static_cast<ident_t>(evi.ident) == this->event_ident + USER_EVENT_SHUTDOWN)
             {
-                this->active = false;
+                synchronized (this->lock)
+                {
+                    this->active = false;
+                }
                 break;
             }
             // wakeup?

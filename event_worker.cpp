@@ -31,7 +31,7 @@ void ft::serv::event_worker::wait_for_loop()
 {
     synchronized (this->lock)
     {
-        if (!this->working_thread)
+        if (!this->active)
         {
             this->cond.wait(this->lock);
         }
@@ -47,13 +47,14 @@ bool ft::serv::event_worker::is_in_event_loop() throw()
 
 bool ft::serv::event_worker::execute_tasks() throw()
 {
-    const bool in_progress = this->active;
+    bool in_progress;
 
     task_list snapshot;
     synchronized (this->lock)
     {
         this->tasks.swap(snapshot);
 
+        in_progress = this->active;
         if (!in_progress)
         {
             this->task_closed = true;
