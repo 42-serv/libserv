@@ -33,8 +33,8 @@ namespace ft
         typedef dynamic_array<struct ::epoll_event>::type event_list;
 
         static const event_list::size_type MAX_EVENTS = FT_SERV_MAX_EVENT_SIZE;
-        static const ::eventfd_t EVFD_NORMAL = 1;
-        static const ::eventfd_t EVFD_SHUTDOWN = 2;
+        static const ::eventfd_t EVFD_NORMAL = 1 << 1;
+        static const ::eventfd_t EVFD_SHUTDOWN = 1;
 
         static void _epoll_operation(ident_t epoll_fd, int epoll_operation, event_channel_base& channel) throw()
         {
@@ -242,7 +242,7 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
             // wakeup?
             ::eventfd_t value;
             const int r = ::eventfd_read(evi.data.fd, &value);
-            if (value == EVFD_SHUTDOWN)
+            if (value & EVFD_SHUTDOWN)
             {
                 synchronized (this->lock)
                 {

@@ -15,7 +15,8 @@
 ft::serv::event_worker_group::event_worker_group()
     : lock(),
       index(),
-      loops()
+      loops(),
+      threads()
 {
 }
 
