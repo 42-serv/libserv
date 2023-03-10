@@ -11,7 +11,44 @@
 
 #include <cassert>
 
+#define T_RESET "\033[0m"
+
+#define T_REVERSE "\033[7m"
+#define T_RESET_REVERSE "\033[27m"
+
+#define T_FG_BLACK "\033[0;30m"
+#define T_FG_RED "\033[0;31m"
+#define T_FG_GREEN "\033[0;32m"
+#define T_FG_YELLOW "\033[0;33m"
+#define T_FG_BLUE "\033[0;34m"
+#define T_FG_MAGENTA "\033[0;35m"
+#define T_FG_CYAN "\033[0;36m"
+#define T_FG_WHITE "\033[0;37m"
+
+#define T_FG_BLACK_BOLD "\033[1;30m"
+#define T_FG_RED_BOLD "\033[1;31m"
+#define T_FG_GREEN_BOLD "\033[1;32m"
+#define T_FG_YELLOW_BOLD "\033[1;33m"
+#define T_FG_BLUE_BOLD "\033[1;34m"
+#define T_FG_MAGENTA_BOLD "\033[1;35m"
+#define T_FG_CYAN_BOLD "\033[1;36m"
+#define T_FG_WHITE_BOLD "\033[1;37m"
+
+#define T_BG_BLACK "\033[40m"
+#define T_BG_RED "\033[41m"
+#define T_BG_GREEN "\033[42m"
+#define T_BG_YELLOW "\033[43m"
+#define T_BG_BLUE "\033[44m"
+#define T_BG_MAGENTA "\033[45m"
+#define T_BG_CYAN "\033[46m"
+#define T_BG_WHITE "\033[47m"
+
+#define T_FG_DEFAULT "\033[0;39m"
+#define T_BG_DEFAULT "\033[0;49m"
+
+#ifndef FT_SERV_WRITE_LOG
 #define FT_SERV_WRITE_LOG(msg) std::cout << msg
+#endif
 
 namespace ft
 {
@@ -28,7 +65,7 @@ namespace ft
                 return time_str;
             }
 
-            inline std::string make_format_string(const char* format, va_list& ap)
+            inline std::string make_format_string_line(const char* format, va_list& ap)
             {
                 std::ostringstream oss;
 
@@ -72,61 +109,61 @@ namespace ft
                         oss << *format;
                     }
                 }
+                oss << std::endl;
                 return oss.str();
+            }
+
+            inline void print(const char* prefix, const char* format, va_list& ap)
+            {
+                std::string msg = T_REVERSE "[" + _internal::make_utc_string() + "]" T_RESET_REVERSE " " + prefix + _internal::make_format_string_line(format, ap);
+                FT_SERV_WRITE_LOG(msg);
             }
         }
 
         struct logger
         {
+#define BEGIN_VARARG(ap, param) \
+    va_list ap;                 \
+    va_start(ap, param)
+#define END_VARARG(ap) va_end(ap)
+
             static inline void trace(const char* format, ...)
             {
-                va_list ap;
-                va_start(ap, format);
-                std::string msg = "[" + _internal::make_utc_string() + "] [TRACE] " + _internal::make_format_string(format, ap) + "\n";
-                va_end(ap);
-
-                FT_SERV_WRITE_LOG(msg);
+                BEGIN_VARARG(ap, format);
+                _internal::print(T_FG_CYAN_BOLD "[TRACE]" T_FG_DEFAULT " ", format, ap);
+                END_VARARG(ap);
             }
 
             static inline void debug(const char* format, ...)
             {
-                va_list ap;
-                va_start(ap, format);
-                std::string msg = "[" + _internal::make_utc_string() + "] [DEBUG] " + _internal::make_format_string(format, ap) + "\n";
-                va_end(ap);
-
-                FT_SERV_WRITE_LOG(msg);
+                BEGIN_VARARG(ap, format);
+                _internal::print(T_FG_MAGENTA_BOLD "[DEBUG]" T_FG_DEFAULT " ", format, ap);
+                END_VARARG(ap);
             }
 
             static inline void info(const char* format, ...)
             {
-                va_list ap;
-                va_start(ap, format);
-                std::string msg = "[" + _internal::make_utc_string() + "] [INFO] " + _internal::make_format_string(format, ap) + "\n";
-                va_end(ap);
-
-                FT_SERV_WRITE_LOG(msg);
+                BEGIN_VARARG(ap, format);
+                _internal::print(T_FG_GREEN_BOLD "[INFO]" T_FG_DEFAULT " ", format, ap);
+                END_VARARG(ap);
             }
 
             static inline void warn(const char* format, ...)
             {
-                va_list ap;
-                va_start(ap, format);
-                std::string msg = "[" + _internal::make_utc_string() + "] [WARN] " + _internal::make_format_string(format, ap) + "\n";
-                va_end(ap);
-
-                FT_SERV_WRITE_LOG(msg);
+                BEGIN_VARARG(ap, format);
+                _internal::print(T_FG_YELLOW_BOLD "[WARN]" T_FG_DEFAULT " ", format, ap);
+                END_VARARG(ap);
             }
 
             static inline void error(const char* format, ...)
             {
-                va_list ap;
-                va_start(ap, format);
-                std::string msg = "[" + _internal::make_utc_string() + "] [ERROR] " + _internal::make_format_string(format, ap) + "\n";
-                va_end(ap);
-
-                FT_SERV_WRITE_LOG(msg);
+                BEGIN_VARARG(ap, format);
+                _internal::print(T_FG_RED_BOLD "[ERROR]" T_FG_DEFAULT " ", format, ap);
+                END_VARARG(ap);
             }
+
+#undef BEGIN_VARARG
+#undef END_VARARG
         };
     }
 }
