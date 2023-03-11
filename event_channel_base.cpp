@@ -15,6 +15,8 @@
 #include <smart_ptr/shared_ptr.hpp>
 
 #include <cassert>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -215,6 +217,16 @@ void ft::serv::event_channel_base::store_interested() throw()
     this->writability_enabled = this->writability_interested;
 }
 
+bool ft::serv::event_channel_base::is_readability_enabled() const throw()
+{
+    return this->readability_enabled;
+}
+
+bool ft::serv::event_channel_base::is_writability_enabled() const throw()
+{
+    return this->writability_enabled;
+}
+
 void ft::serv::event_channel_base::trigger_read() throw()
 {
     assert(!this->loop.expired() && this->loop.lock()->is_in_event_loop());
@@ -340,6 +352,9 @@ void ft::serv::event_channel_base::begin_write()
             pipeline->notify_error(ft::make_shared<syscall_failed>(err));
             return;
         }
+#ifdef FT_TRACE
+        this->trace_dump_bytes("[Send] ", buf.get(), len);
+#endif
         buf.remove(len);
     }
     buf.discard();
@@ -354,10 +369,44 @@ void ft::serv::event_channel_base::begin_write()
     }
 }
 
+#ifdef FT_TRACE
+void ft::serv::event_channel_base::trace_log(const char* prefix, const std::string& msg)
+{
+    logger::trace("Event Channel (%d, %s, %d): %s%s", this->ident, this->host.c_str(), this->serv, prefix, msg.c_str());
+}
+
+void ft::serv::event_channel_base::trace_dump_bytes(const char* prefix, const byte_t* buf, byte_buffer::size_type len)
+{
+    std::ostringstream oss;
+    for (byte_buffer::size_type i = 0; i < len; i++)
+    {
+        (i ? oss << " " : oss) << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << static_cast<int>(buf[i]); //%02X
+    }
+    this->trace_log(prefix, oss.str());
+}
+
+void ft::serv::event_channel_base::trace_dump_child(const char* prefix, ident_t ident, const std::string& host, int serv)
+{
+    std::ostringstream oss;
+    oss << ident << ", " << host << ", " << serv;
+    this->trace_log(prefix, oss.str());
+}
+#endif
+
 void ft::serv::event_channel_base::shutdown_half(bool input_or_output)
 {
     const ft::shared_ptr<event_worker>& worker = this->get_loop();
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
+
+    if (input_or_output)
+    {
+        this->readability_interested = false;
+    }
+    else
+    {
+        this->writability_interested = false;
+    }
+
     if (this->input_closed && this->output_closed)
     {
         pipeline->notify_inactive();
@@ -365,14 +414,6 @@ void ft::serv::event_channel_base::shutdown_half(bool input_or_output)
     }
     else
     {
-        if (input_or_output)
-        {
-            this->readability_interested = false;
-        }
-        else
-        {
-            this->writability_interested = false;
-        }
         worker->watch_ability(*this);
     }
 }

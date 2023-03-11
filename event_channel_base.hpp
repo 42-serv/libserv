@@ -61,6 +61,8 @@ namespace ft
 
             void load_interested(bool out_interested[2], bool out_changed[2]) const throw();
             void store_interested() throw();
+            bool is_readability_enabled() const throw();
+            bool is_writability_enabled() const throw();
 
             void trigger_read() throw();
             void trigger_write() throw();
@@ -75,6 +77,13 @@ namespace ft
         protected:
             virtual void begin_read() = 0;
             virtual void begin_write();
+
+#ifdef FT_TRACE
+        protected:
+            void trace_log(const char* prefix, const std::string& msg);
+            void trace_dump_bytes(const char* prefix, const byte_t* buf, byte_buffer::size_type len);
+            void trace_dump_child(const char* prefix, ident_t ident, const std::string& host, int serv);
+#endif
 
         private:
             void shutdown_half(bool input_or_output);

@@ -44,6 +44,9 @@ void ft::serv::server_channel::begin_read()
             return;
         }
         const ft::shared_ptr<ft::serv::event_channel_base> child = this->make_child(child_ident, child_host, child_serv);
+#ifdef FT_TRACE
+        this->trace_dump_child("[Accept] ", child_ident, child_host, child_serv);
+#endif
         ft::serv::socket_utils::set_nonblocking(child_ident, true);
         pipeline->notify_read(child);
         child->set_loop(this->group->next());

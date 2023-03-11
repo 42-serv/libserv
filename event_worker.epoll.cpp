@@ -61,6 +61,13 @@ namespace ft
             }
             channel.store_interested();
         }
+
+        static void _write_eventfd(ident_t event_ident, ::eventfd_t value) throw()
+        {
+            const int r = ::eventfd_write(event_ident, value);
+            // ignore errors
+            static_cast<void>(r);
+        }
     }
 }
 
@@ -156,8 +163,9 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 {
     assert(this->is_in_event_loop());
 
+    const ident_t ident = channel.get_ident();
     _epoll_operation(this->loop_ident, EPOLL_CTL_MOD, channel);
-    logger::trace("Event Worker (%d): Watch Ability Changed (%d)", this->loop_ident, channel.get_ident());
+    logger::trace("Event Worker (%d): Watch Ability Changed (%d): R=%d, W=%d", this->loop_ident, ident, channel.is_readability_enabled(), channel.is_writability_enabled());
 }
 
 void ft::serv::event_worker::loop()
@@ -221,17 +229,13 @@ void ft::serv::event_worker::wake_up() throw()
 {
     if (!this->is_in_event_loop())
     {
-        const int r = ::eventfd_write(this->event_ident, EVFD_NORMAL);
-        // ignore errors
-        static_cast<void>(r);
+        _write_eventfd(this->event_ident, EVFD_NORMAL);
     }
 }
 
 void ft::serv::event_worker::shutdown_loop() throw()
 {
-    const int r = ::eventfd_write(this->event_ident, EVFD_SHUTDOWN);
-    // ignore errors
-    static_cast<void>(r);
+    _write_eventfd(this->event_ident, EVFD_SHUTDOWN);
 }
 
 void ft::serv::event_worker::process_events(void* list, int n) throw()

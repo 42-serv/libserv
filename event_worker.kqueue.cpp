@@ -38,6 +38,40 @@ namespace ft
             USER_EVENT_SHUTDOWN,
             NUMBER_OF_USER_EVENT
         };
+
+        static void _kqueue_operation(event_list& changes, int flags_add, int flags_del, event_channel_base& channel) throw()
+        {
+            const ident_t ident = channel.get_ident();
+            struct ::kevent change[2];
+            event_list::size_type count = 0;
+            bool interested[2];
+            bool changed[2];
+            channel.load_interested(interested, changed);
+            if (changed[0])
+            {
+                EV_SET(&change[count++], ident, EVFILT_READ, interested[0] ? flags_add : flags_del, 0, 0, null);
+            }
+            if (changed[1])
+            {
+                EV_SET(&change[count++], ident, EVFILT_WRITE, interested[1] ? flags_add : flags_del, 0, 0, null);
+            }
+            changes.insert(changes.end(), beginof(change), &change[count]);
+            channel.store_interested();
+        }
+
+        static void _trigger_user_event(ident_t loop_ident, ident_t target_ident) throw()
+        {
+            struct ::kevent change[1];
+            EV_SET(&change[0], target_ident, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
+            if (::kevent(loop_ident, beginof(change), countof(change), null, 0, null) < 0)
+            {
+                const syscall_failed e;
+                if (e.error() != EINTR)
+                {
+                    // ignore errors
+                }
+            }
+        }
     }
 }
 
@@ -88,7 +122,7 @@ void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base
     assert(success); // NOTE: duplicate identity
 
     logger::trace("Event Worker (%d): Add Event Channel (%d)", this->loop_ident, ident);
-    this->watch_ability(*channel);
+    _kqueue_operation(*static_cast<event_list*>(this->loop_list), EV_ADD | EV_ENABLE | EV_CLEAR, 0, channel);
 }
 
 void ft::serv::event_worker::remove_channel(const ident_t ident)
@@ -100,7 +134,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
     if (it != this->channels.end())
     {
         const ft::shared_ptr<event_channel_base>& channel = it->second;
-        this->watch_ability(*channel);
+        _kqueue_operation(*static_cast<event_list*>(this->loop_list), 0, EV_DELETE | EV_DISABLE, channel);
         logger::trace("Event Worker (%d): Remove Event Channel (%d): Success", this->loop_ident, ident);
         this->channels.erase(it);
     }
@@ -115,27 +149,9 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
 {
     assert(this->is_in_event_loop());
 
-    const int flags_add = EV_ADD | EV_ENABLE | EV_CLEAR;
-    const int flags_del = EV_DELETE | EV_DISABLE;
-
     const ident_t ident = channel.get_ident();
-    event_list& changes = *static_cast<event_list*>(this->loop_list);
-    struct ::kevent change[2];
-    event_list::size_type count = event_list::size_type();
-    bool interested[2];
-    bool changed[2];
-    channel.load_interested(interested, changed);
-    if (changed[0])
-    {
-        EV_SET(&change[count++], ident, EVFILT_READ, interested[0] ? flags_add : flags_del, 0, 0, null);
-    }
-    if (changed[1])
-    {
-        EV_SET(&change[count++], ident, EVFILT_WRITE, interested[1] ? flags_add : flags_del, 0, 0, null);
-    }
-    changes.insert(changes.end(), beginof(change), &change[count]);
-    channel.store_interested();
-    logger::trace("Event Worker (%d): Watch Ability Changed (%d)", this->loop_ident, ident);
+    _kqueue_operation(*static_cast<event_list*>(this->loop_list), EV_ENABLE, EV_DISABLE, channel);
+    logger::trace("Event Worker (%d): Watch Ability Changed (%d): R=%d, W=%d", this->loop_ident, ident, channel.is_readability_enabled(), channel.is_writability_enabled());
     this->wake_up();
 }
 
@@ -206,31 +222,13 @@ void ft::serv::event_worker::wake_up() throw()
 {
     if (!this->is_in_event_loop())
     {
-        struct ::kevent change[1];
-        EV_SET(&change[0], this->event_ident + USER_EVENT_WAKEUP, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
-        if (::kevent(this->loop_ident, beginof(change), countof(change), null, 0, null) < 0)
-        {
-            const syscall_failed e;
-            if (e.error() != EINTR)
-            {
-                // ignore errors
-            }
-        }
+        _trigger_user_event(this->loop_ident, this->event_ident + USER_EVENT_WAKEUP);
     }
 }
 
 void ft::serv::event_worker::shutdown_loop() throw()
 {
-    struct ::kevent change[1];
-    EV_SET(&change[0], this->event_ident + USER_EVENT_SHUTDOWN, EVFILT_USER, 0, NOTE_TRIGGER | NOTE_FFNOP, 0, null);
-    if (::kevent(this->loop_ident, beginof(change), countof(change), null, 0, null) < 0)
-    {
-        const syscall_failed e;
-        if (e.error() != EINTR)
-        {
-            // ignore errors
-        }
-    }
+    _trigger_user_event(this->loop_ident, this->event_ident + USER_EVENT_SHUTDOWN);
 }
 
 void ft::serv::event_worker::process_events(void* list, int n) throw()

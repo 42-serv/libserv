@@ -47,6 +47,9 @@ void ft::serv::stream_channel::begin_read()
             gracefully_shutdown = true;
             break;
         }
+#ifdef FT_TRACE
+        this->trace_dump_bytes("[Recv] ", buf->raw_buffer(), len);
+#endif
         buf->raw_shrink(len);
         pipeline->notify_read(buf);
     } while (!0);

@@ -148,16 +148,24 @@ namespace ft
 
             static inline void trace(const char* format, ...)
             {
+#ifdef FT_TRACE
                 BEGIN_VARARG(ap, format);
                 _internal::print(T_FG_CYAN_BOLD "[TRACE]" T_FG_DEFAULT "\t", format, ap);
                 END_VARARG(ap);
+#else
+                static_cast<void>(format);
+#endif
             }
 
             static inline void debug(const char* format, ...)
             {
+#ifdef FT_DEBUG
                 BEGIN_VARARG(ap, format);
                 _internal::print(T_FG_MAGENTA_BOLD "[DEBUG]" T_FG_DEFAULT "\t", format, ap);
                 END_VARARG(ap);
+#else
+                static_cast<void>(format);
+#endif
             }
 
             static inline void info(const char* format, ...)
