@@ -61,7 +61,7 @@ namespace ft
                 std::time_t time;
                 assert(std::time(&time) != static_cast<std::time_t>(-1));
                 char time_str[sizeof("yyyy-mm-ddThh:mm:ssZ")];
-                assert(std::strftime(time_str, sizeof(time_str), "%FT%TZ", std::gmtime(&time)) == sizeof(time_str) - sizeof('\0'));
+                assert(std::strftime(time_str, sizeof(time_str), "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&time)) == sizeof(time_str) - sizeof('\0'));
                 return time_str;
             }
 
