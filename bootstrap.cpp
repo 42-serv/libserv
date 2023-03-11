@@ -4,6 +4,7 @@
 #include "bootstrap.hpp"
 
 #include "event_worker_group.hpp"
+#include "logger.hpp"
 #include "serv_types.hpp"
 #include "server_channel.hpp"
 #include "socket_utils.hpp"
@@ -60,6 +61,7 @@ bool ft::serv::bootstrap::start_server(const std::string& host_str, const std::s
     int serv;
     socket_utils::name_socket(boss_ident, host, serv);
     const ft::shared_ptr<event_channel_base> boss = (*this->make_server)(boss_ident, host, serv, this->child_group, arg);
+    logger::trace("Boot Server (%d, %s, %d)", boss_ident, host.c_str(), serv);
     boss->set_loop(this->boss_group->next());
     boss->loop_register();
 
@@ -90,6 +92,7 @@ bool ft::serv::bootstrap::start_client(const std::string& host_str, const std::s
     int serv;
     socket_utils::name_socket(child_ident, host, serv);
     const ft::shared_ptr<event_channel_base> child = (*this->make_client)(child_ident, host, serv, arg);
+    logger::trace("Boot Client (%d, %s, %d)", child_ident, host.c_str(), serv);
     child->set_loop(this->child_group->next());
     child->loop_register();
 

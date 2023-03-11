@@ -140,7 +140,7 @@ namespace ft
 
             inline void print(const char* prefix, const char* format, va_list& ap)
             {
-                std::string msg = T_REVERSE "[" + _internal::make_utc_string() + "]" T_RESET_REVERSE " " + prefix + _internal::make_format_string_line(format, ap);
+                std::string msg = "\r" T_REVERSE "[" + _internal::make_utc_string() + "]" T_RESET_REVERSE "\t" + prefix + _internal::make_format_string_line(format, ap);
                 FT_SERV_WRITE_LOG(msg);
             }
         }
@@ -155,35 +155,35 @@ namespace ft
             static inline void trace(const char* format, ...)
             {
                 BEGIN_VARARG(ap, format);
-                _internal::print(T_FG_CYAN_BOLD "[TRACE]" T_FG_DEFAULT " ", format, ap);
+                _internal::print(T_FG_CYAN_BOLD "[TRACE]" T_FG_DEFAULT "\t", format, ap);
                 END_VARARG(ap);
             }
 
             static inline void debug(const char* format, ...)
             {
                 BEGIN_VARARG(ap, format);
-                _internal::print(T_FG_MAGENTA_BOLD "[DEBUG]" T_FG_DEFAULT " ", format, ap);
+                _internal::print(T_FG_MAGENTA_BOLD "[DEBUG]" T_FG_DEFAULT "\t", format, ap);
                 END_VARARG(ap);
             }
 
             static inline void info(const char* format, ...)
             {
                 BEGIN_VARARG(ap, format);
-                _internal::print(T_FG_GREEN_BOLD "[INFO]" T_FG_DEFAULT " ", format, ap);
+                _internal::print(T_FG_GREEN_BOLD "[INFO]" T_FG_DEFAULT "\t", format, ap);
                 END_VARARG(ap);
             }
 
             static inline void warn(const char* format, ...)
             {
                 BEGIN_VARARG(ap, format);
-                _internal::print(T_FG_YELLOW_BOLD "[WARN]" T_FG_DEFAULT " ", format, ap);
+                _internal::print(T_FG_YELLOW_BOLD "[WARN]" T_FG_DEFAULT "\t", format, ap);
                 END_VARARG(ap);
             }
 
             static inline void error(const char* format, ...)
             {
                 BEGIN_VARARG(ap, format);
-                _internal::print(T_FG_RED_BOLD "[ERROR]" T_FG_DEFAULT " ", format, ap);
+                _internal::print(T_FG_RED_BOLD "[ERROR]" T_FG_DEFAULT "\t", format, ap);
                 END_VARARG(ap);
             }
 

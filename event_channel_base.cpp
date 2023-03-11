@@ -132,10 +132,12 @@ ft::serv::event_channel_base::event_channel_base(ident_t ident, const std::strin
     this->pipeline_tail = ft::make_shared<event_layer>(*this, ft::make_shared<dummy_outbound_adapter>());
     this->pipeline_head->set_next(this->pipeline_tail);
     this->pipeline_tail->set_prev(this->pipeline_head);
+    logger::trace("Create Event Channel (%d, %s, %d)", this->ident, this->host.c_str(), this->serv);
 }
 
 ft::serv::event_channel_base::~event_channel_base()
 {
+    logger::trace("Destroy Event Channel (%d, %s, %d)", this->ident, this->host.c_str(), this->serv);
     socket_utils::close_socket(this->ident);
 }
 

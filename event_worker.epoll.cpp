@@ -109,10 +109,12 @@ ft::serv::event_worker::event_worker()
         }
         throw;
     }
+    logger::trace("Create Event Worker (%d)", this->loop_ident);
 }
 
 ft::serv::event_worker::~event_worker()
 {
+    logger::trace("Destroy Event Worker (%d)", this->loop_ident);
     ::close(this->loop_ident);
     ::close(this->event_ident);
 }
@@ -126,6 +128,7 @@ void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base
     const bool success = this->channels.insert(std::make_pair(ident, channel)).second;
     assert(success); // NOTE: duplicate identity
 
+    logger::trace("Event Worker (%d): Add Event Channel (%d)", this->loop_ident, ident);
     _epoll_operation(this->loop_ident, EPOLL_CTL_ADD, *channel);
 }
 
@@ -139,11 +142,13 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
     {
         const ft::shared_ptr<event_channel_base>& channel = it->second;
         _epoll_operation(this->loop_ident, EPOLL_CTL_DEL, *channel);
+        logger::trace("Event Worker (%d): Remove Event Channel (%d): Success", this->loop_ident, ident);
         this->channels.erase(it);
     }
     else
     {
         // ignore
+        logger::trace("Event Worker (%d): Remove Event Channel (%d): Not Found", this->loop_ident, ident);
     }
 }
 
@@ -152,6 +157,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
     assert(this->is_in_event_loop());
 
     _epoll_operation(this->loop_ident, EPOLL_CTL_MOD, channel);
+    logger::trace("Event Worker (%d): Watch Ability Changed (%d)", this->loop_ident, ident);
 }
 
 void ft::serv::event_worker::loop()

@@ -5,7 +5,6 @@
 
 #include "event_channel_base.hpp"
 #include "event_worker.hpp"
-#include "logger.hpp"
 #include "serv_types.hpp"
 
 #include <smart_ptr/make_shared.hpp>
@@ -58,13 +57,11 @@ void ft::serv::event_worker_group::shutdown_all() throw()
 {
     assert(!this->loops.empty());
 
-    logger::info("Shutdown started.");
     foreach (loop_list::iterator, it, this->loops)
     {
         const ft::shared_ptr<event_worker>& lp = *it;
         lp->shutdown_loop();
     }
-    logger::info("Shutdown finished.");
 }
 
 void ft::serv::event_worker_group::join_all()
