@@ -118,12 +118,6 @@ namespace ft
                         case 'E':
                             oss << std::uppercase << std::scientific << va_arg(ap, double);
                             break;
-                        case 'g':
-                            oss << std::nouppercase << std::defaultfloat << va_arg(ap, double);
-                            break;
-                        case 'G':
-                            oss << std::uppercase << std::defaultfloat << va_arg(ap, double);
-                            break;
                         case 'p':
                             oss << va_arg(ap, const void*);
                             break;

@@ -157,7 +157,7 @@ void ft::serv::event_worker::watch_ability(event_channel_base& channel)
     assert(this->is_in_event_loop());
 
     _epoll_operation(this->loop_ident, EPOLL_CTL_MOD, channel);
-    logger::trace("Event Worker (%d): Watch Ability Changed (%d)", this->loop_ident, ident);
+    logger::trace("Event Worker (%d): Watch Ability Changed (%d)", this->loop_ident, channel.get_ident());
 }
 
 void ft::serv::event_worker::loop()
