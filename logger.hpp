@@ -81,17 +81,8 @@ namespace ft
 
                         switch (*format)
                         {
-                        case 'd':
-                            oss << std::dec << va_arg(ap, int);
-                            break;
-                        case 'u':
-                            oss << std::dec << va_arg(ap, unsigned int);
-                            break;
-                        case 'x':
-                            oss << std::hex << va_arg(ap, unsigned int);
-                            break;
-                        case 'f':
-                            oss << std::fixed << va_arg(ap, double);
+                        case '%':
+                            oss << '%';
                             break;
                         case 'c':
                             oss << static_cast<char>(va_arg(ap, int));
@@ -99,8 +90,42 @@ namespace ft
                         case 's':
                             oss << va_arg(ap, const char*);
                             break;
+                        case 'd':
+                        case 'i':
+                            oss << std::dec << va_arg(ap, int);
+                            break;
+                        case 'o':
+                            oss << std::oct << va_arg(ap, unsigned int);
+                            break;
+                        case 'x':
+                            oss << std::nouppercase << std::hex << va_arg(ap, unsigned int);
+                            break;
+                        case 'X':
+                            oss << std::uppercase << std::hex << va_arg(ap, unsigned int);
+                            break;
+                        case 'u':
+                            oss << std::dec << va_arg(ap, unsigned int);
+                            break;
+                        case 'f':
+                            oss << std::nouppercase << std::fixed << va_arg(ap, double);
+                            break;
+                        case 'F':
+                            oss << std::uppercase << std::fixed << va_arg(ap, double);
+                            break;
+                        case 'e':
+                            oss << std::nouppercase << std::scientific << va_arg(ap, double);
+                            break;
+                        case 'E':
+                            oss << std::uppercase << std::scientific << va_arg(ap, double);
+                            break;
+                        case 'g':
+                            oss << std::nouppercase << std::defaultfloat << va_arg(ap, double);
+                            break;
+                        case 'G':
+                            oss << std::uppercase << std::defaultfloat << va_arg(ap, double);
+                            break;
                         case 'p':
-                            oss << std::showbase << va_arg(ap, void*);
+                            oss << va_arg(ap, const void*);
                             break;
                         }
                     }
