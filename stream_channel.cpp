@@ -39,7 +39,11 @@ void ft::serv::stream_channel::begin_read()
             {
                 break;
             }
-            pipeline->notify_error(ft::make_shared<syscall_failed>(err));
+            const ft::shared_ptr<syscall_failed> e = ft::make_shared<syscall_failed>(err);
+#ifdef FT_TRACE
+            this->trace_log("[RecvErr] ", e->what());
+#endif
+            pipeline->notify_error(e);
             return;
         }
         if (len == 0)

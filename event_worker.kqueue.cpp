@@ -193,7 +193,7 @@ void ft::serv::event_worker::loop()
             }
             else
             {
-                logger::warn("Error on kevent");
+                logger::warn("Event Worker (%d): Error on kevent: %s", this->loop_ident, e.what());
                 ::sleep(1);
             }
             continue;
@@ -242,6 +242,7 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
 
         if (evi.filter == EVFILT_USER)
         {
+            logger::trace("Event Worker (%d): Kqueue Wakeup Event", this->loop_ident);
             if (static_cast<ident_t>(evi.ident) == this->event_ident + USER_EVENT_SHUTDOWN)
             {
                 synchronized (this->lock)
@@ -250,13 +251,14 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
                 }
                 break;
             }
-            // wakeup?
             continue;
         }
 
         if (evi.flags & EV_ERROR)
         {
             // double delete? (close after delete)
+            const syscall_failed e(evi.data);
+            logger::trace("Event Worker (%d): Error (%d): %s", this->loop_ident, ident, e.what());
             continue;
         }
 
@@ -264,18 +266,20 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
         const channel_dictionary::const_iterator it_channel = this->channels.find(ident);
         if (it_channel == this->channels.end())
         {
-            // no channel!!
+            logger::warn("Event Worker (%d): Channel Not Found (%d)", this->loop_ident, ident);
             continue;
         }
         ft::shared_ptr<event_channel_base> channel = it_channel->second; // lock ref count
 
         if (evi.filter == EVFILT_WRITE)
         {
+            logger::trace("Event Worker (%d): Kqueue Write Event (%d): %d, %x", this->loop_ident, ident, evi.data, evi.flags);
             channel->trigger_write();
         }
         else if (evi.filter == EVFILT_READ)
         {
             // can use `evi.data`, `evi.flags & EV_EOF`
+            logger::trace("Event Worker (%d): Kqueue Read Event (%d): %d, %x", this->loop_ident, ident, evi.data, evi.flags);
             channel->trigger_read();
         }
     }

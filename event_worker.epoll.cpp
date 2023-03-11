@@ -65,8 +65,7 @@ namespace ft
         static void _write_eventfd(ident_t event_ident, ::eventfd_t value) throw()
         {
             const int r = ::eventfd_write(event_ident, value);
-            // ignore errors
-            static_cast<void>(r);
+            static_cast<void>(r); // ignore errors
         }
     }
 }
@@ -201,7 +200,7 @@ void ft::serv::event_worker::loop()
             }
             else
             {
-                logger::warn("Error on epoll_wait");
+                logger::warn("Event Worker (%d): Error on epoll_wait: %s", this->loop_ident, e.what());
                 ::sleep(1);
             }
             continue;
@@ -249,9 +248,10 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
         const ident_t ident = evi.data.fd;
         if (ident == this->event_ident)
         {
-            // wakeup?
             ::eventfd_t value;
-            const int r = ::eventfd_read(evi.data.fd, &value);
+            const int r = ::eventfd_read(ident, &value);
+            static_cast<void>(r); // ignore errors
+            logger::trace("Event Worker (%d): Epoll Wakeup Event: value %d", this->loop_ident, value);
             if (value & EVFD_SHUTDOWN)
             {
                 synchronized (this->lock)
@@ -260,22 +260,20 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
                 }
                 break;
             }
-            // ignore errors
-            static_cast<void>(r);
             continue;
         }
 
         const channel_dictionary::const_iterator it_channel = this->channels.find(ident);
         if (it_channel == this->channels.end())
         {
-            // no channel!!
             const int r = ::epoll_ctl(this->loop_ident, EPOLL_CTL_DEL, ident, null);
-            // ignore errors
-            static_cast<void>(r);
+            static_cast<void>(r); // ignore errors
+            logger::warn("Event Worker (%d): Channel Not Found (%d)", this->loop_ident, ident);
             continue;
         }
         ft::shared_ptr<event_channel_base> channel = it_channel->second; // lock ref count
 
+        logger::trace("Event Worker (%d): Epoll Event (%d): %x", this->loop_ident, ident, evi.events);
         if (evi.events & (EPOLLOUT | EPOLLERR))
         {
             channel->trigger_write();

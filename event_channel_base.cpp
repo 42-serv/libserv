@@ -305,6 +305,9 @@ void ft::serv::event_channel_base::finish()
         return;
     }
     this->finished = true;
+#ifdef FT_TRACE
+    this->trace_log("[Down] ", "Finished");
+#endif
 }
 
 void ft::serv::event_channel_base::shutdown_input()
@@ -316,6 +319,9 @@ void ft::serv::event_channel_base::shutdown_input()
         return;
     }
     this->input_closed = true;
+#ifdef FT_TRACE
+    this->trace_log("[Down] ", "Input closed");
+#endif
     this->shutdown_half(true);
 }
 
@@ -328,6 +334,9 @@ void ft::serv::event_channel_base::shutdown_output()
         return;
     }
     this->output_closed = true;
+#ifdef FT_TRACE
+    this->trace_log("[Down] ", "Output closed");
+#endif
     this->shutdown_half(false);
     socket_utils::finish_socket(this->get_ident());
 }
@@ -349,7 +358,11 @@ void ft::serv::event_channel_base::begin_write()
                 not_yet_completed = true;
                 break;
             }
-            pipeline->notify_error(ft::make_shared<syscall_failed>(err));
+            const ft::shared_ptr<syscall_failed> e = ft::make_shared<syscall_failed>(err);
+#ifdef FT_TRACE
+            this->trace_log("[SendErr] ", e->what());
+#endif
+            pipeline->notify_error(e);
             return;
         }
 #ifdef FT_TRACE
