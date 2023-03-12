@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <cstddef>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>

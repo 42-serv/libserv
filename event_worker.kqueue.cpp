@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <exception>
 #include <map>
 #include <string>

@@ -12,6 +12,7 @@
 #include <smart_ptr/make_shared.hpp>
 #include <smart_ptr/shared_ptr.hpp>
 
+#include <cstddef>
 #include <string>
 
 ft::serv::stream_channel::stream_channel(ident_t ident, const std::string& host, int serv, std::size_t init_buf_capacity)

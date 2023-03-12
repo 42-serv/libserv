@@ -15,6 +15,7 @@
 #include <smart_ptr/shared_ptr.hpp>
 
 #include <cassert>
+#include <cstddef>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
