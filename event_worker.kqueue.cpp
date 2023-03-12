@@ -122,7 +122,7 @@ void ft::serv::event_worker::add_channel(const ft::shared_ptr<event_channel_base
     assert(success); // NOTE: duplicate identity
 
     logger::trace("Event Worker (%d): Add Event Channel (%d)", this->loop_ident, ident);
-    _kqueue_operation(*static_cast<event_list*>(this->loop_list), EV_ADD | EV_ENABLE | EV_CLEAR, 0, channel);
+    _kqueue_operation(*static_cast<event_list*>(this->loop_list), EV_ADD | EV_ENABLE | EV_CLEAR, 0, *channel);
 }
 
 void ft::serv::event_worker::remove_channel(const ident_t ident)
@@ -134,7 +134,7 @@ void ft::serv::event_worker::remove_channel(const ident_t ident)
     if (it != this->channels.end())
     {
         const ft::shared_ptr<event_channel_base>& channel = it->second;
-        _kqueue_operation(*static_cast<event_list*>(this->loop_list), 0, EV_DELETE | EV_DISABLE, channel);
+        _kqueue_operation(*static_cast<event_list*>(this->loop_list), 0, EV_DELETE | EV_DISABLE, *channel);
         logger::trace("Event Worker (%d): Remove Event Channel (%d): Success", this->loop_ident, ident);
         this->channels.erase(it);
     }
@@ -258,7 +258,7 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
         {
             // double delete? (close after delete)
             const syscall_failed e(evi.data);
-            logger::trace("Event Worker (%d): Error (%d): %s", this->loop_ident, ident, e.what());
+            logger::trace("Event Worker (%d): Error (%d): %s", this->loop_ident, evi.ident, e.what());
             continue;
         }
 
