@@ -41,17 +41,18 @@ namespace ft
 
         static void _kqueue_operation(event_list& changes, int flags_add, int flags_del, event_channel_base& channel) throw()
         {
+            const bool force = flags_add == 0 || flags_del == 0;
             const ident_t ident = channel.get_ident();
             struct ::kevent change[2];
             event_list::size_type count = 0;
             bool interested[2];
             bool changed[2];
             channel.load_interested(interested, changed);
-            if (changed[0])
+            if (changed[0] || force)
             {
                 EV_SET(&change[count++], ident, EVFILT_READ, interested[0] ? flags_add : flags_del, 0, 0, null);
             }
-            if (changed[1])
+            if (changed[1] || force)
             {
                 EV_SET(&change[count++], ident, EVFILT_WRITE, interested[1] ? flags_add : flags_del, 0, 0, null);
             }
@@ -256,9 +257,16 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
 
         if (evi.flags & EV_ERROR)
         {
-            // double delete? (close after delete)
             const syscall_failed e(evi.data);
-            logger::trace("Event Worker (%d): Error (%d): %s", this->loop_ident, evi.ident, e.what());
+            if (e.error() == EBADF)
+            {
+                // double delete (delete after auto-delete on close)
+                // ignore
+            }
+            else
+            {
+                logger::trace("Event Worker (%d): Error (%d): %s", this->loop_ident, evi.ident, e.what());
+            }
             continue;
         }
 

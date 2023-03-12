@@ -347,6 +347,7 @@ void ft::serv::event_channel_base::begin_write()
     const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
     bool not_yet_completed = false;
     byte_buffer& buf = this->flushed_buf;
+    std::size_t spin_count = FT_SERV_WRITE_SPIN_COUNT;
     while (!buf.empty())
     {
         const long len = socket_utils::send_socket(this->get_ident(), buf.get(), buf.size());
@@ -369,6 +370,11 @@ void ft::serv::event_channel_base::begin_write()
         this->trace_dump_bytes("[Send] ", buf.get(), len);
 #endif
         buf.remove(len);
+        if (--spin_count == 0)
+        {
+            not_yet_completed = true;
+            break;
+        }
     }
     buf.discard();
     if (this->finished && !this->writability_interested)

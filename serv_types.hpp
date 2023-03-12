@@ -6,6 +6,7 @@
 #define FT_SERV_DEFAULT_LISTEN_BACKLOG 16
 #define FT_SERV_DEFAULT_INIT_BUFFER_CAPACITY 4096
 #define FT_SERV_MAX_EVENT_SIZE 4096
+#define FT_SERV_WRITE_SPIN_COUNT 4
 
 #define null NULL
 #define staticassert(_x) static_cast<void>(sizeof(char[(_x) ? 1 : -1]))
