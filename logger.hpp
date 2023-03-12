@@ -3,8 +3,12 @@
 
 #pragma once
 
+#include "serv_types.hpp"
+
+#include <sys/time.h> // localtime_r
+
 #include <cstdarg>
-#include <ctime>
+#include <ctime> // time_t, time, strftime
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -60,8 +64,10 @@ namespace ft
             {
                 std::time_t time;
                 assert(std::time(&time) != static_cast<std::time_t>(-1));
+                ::tm t;
+                assert(::localtime_r(&time, &t) != null);
                 char time_str[sizeof("yyyy-mm-ddThh:mm:ssZ")];
-                assert(std::strftime(time_str, sizeof(time_str), "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&time)) == sizeof(time_str) - sizeof('\0'));
+                assert(std::strftime(time_str, sizeof(time_str), "%Y-%m-%dT%H:%M:%SZ", &t) == sizeof(time_str) - sizeof('\0'));
                 return time_str;
             }
 
