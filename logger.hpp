@@ -5,6 +5,8 @@
 
 #include "serv_types.hpp"
 
+#include <thread/mutex.hpp>
+
 #include <sys/time.h> // localtime_r
 
 #include <cstdarg>
@@ -140,8 +142,13 @@ namespace ft
 
             inline void print(const char* prefix, const char* format, va_list& ap)
             {
+                static ft::mutex mutex;
+
                 std::string msg = "\r" T_REVERSE "[" + _internal::make_utc_string() + "]" T_RESET_REVERSE "\t" + prefix + _internal::make_format_string_line(format, ap);
-                FT_SERV_WRITE_LOG(msg);
+                synchronized (mutex)
+                {
+                    FT_SERV_WRITE_LOG(msg);
+                }
             }
         }
 
