@@ -142,13 +142,8 @@ namespace ft
 
             inline void print(const char* prefix, const char* format, va_list& ap)
             {
-                static ft::mutex mutex;
-
                 std::string msg = "\r" T_REVERSE "[" + _internal::make_utc_string() + "]" T_RESET_REVERSE "\t" + prefix + _internal::make_format_string_line(format, ap);
-                synchronized (mutex)
-                {
-                    FT_SERV_WRITE_LOG(msg);
-                }
+                FT_SERV_WRITE_LOG(msg);
             }
         }
 
