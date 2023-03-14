@@ -259,9 +259,10 @@ void ft::serv::event_worker::process_events(void* list, int n) throw()
         if (evi.flags & EV_ERROR)
         {
             const syscall_failed e(evi.data);
-            if (e.error() == EBADF)
+            if (e.error() == ENOENT)
             {
-                // double delete (delete after auto-delete on close)
+                // double delete (delete after auto-delete on close):
+                // The event could not be found to be modified or deleted. (https://man.freebsd.org/cgi/man.cgi?kqueue)
                 // ignore
             }
             else
