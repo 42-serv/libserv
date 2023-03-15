@@ -313,7 +313,7 @@ namespace ft
                 }
                 catch (const _internal::ai_failed& e)
                 {
-                    if (e.error() != EAI_NONAME)
+                    if (e.error() != EAI_NONAME && e.error() != EAI_SERVICE)
                     {
                         throw;
                     }

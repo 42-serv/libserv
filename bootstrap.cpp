@@ -112,9 +112,15 @@ void ft::serv::bootstrap::finalize()
         if (!this->success)
         {
             this->boss_group->shutdown_all();
-            this->child_group->shutdown_all();
+            if (this->boss_group != this->child_group)
+            {
+                this->child_group->shutdown_all();
+            }
         }
         this->boss_group->join_all();
-        this->child_group->join_all();
+        if (this->boss_group != this->child_group)
+        {
+            this->child_group->join_all();
+        }
     }
 }
