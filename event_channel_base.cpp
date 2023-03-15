@@ -241,7 +241,7 @@ void ft::serv::event_channel_base::trigger_read() throw()
         const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
         try
         {
-            pipeline->notify_error(ft::shared_ptr<const std::exception>(&e, ft::nothing()));
+            pipeline->notify_error(ft::shared_ptr<std::runtime_error>(e.what()));
         }
         catch (...)
         {
@@ -263,7 +263,7 @@ void ft::serv::event_channel_base::trigger_write() throw()
         const ft::shared_ptr<event_layer>& pipeline = this->get_pipeline();
         try
         {
-            pipeline->notify_error(ft::shared_ptr<const std::exception>(&e, ft::nothing()));
+            pipeline->notify_error(ft::shared_ptr<std::runtime_error>(e.what()));
         }
         catch (...)
         {

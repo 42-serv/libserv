@@ -50,12 +50,6 @@ namespace ft
             typedef std::set<T> type; // unordered_set
         };
     }
-
-    struct nothing
-    {
-        template <typename T>
-        void operator()(T*) {}
-    };
 }
 
 #define foreach(_type, _name, _coll) for (_type _name = (_coll).begin(); _name != (_coll).end(); ++_name)
