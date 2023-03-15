@@ -202,14 +202,16 @@ void ft::serv::event_layer::invoke_on_error(ft::shared_ptr<const std::exception>
 {
     const ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
-    if (loop->is_in_event_loop())
-    {
-        this->on_error(e);
-    }
-    else
-    {
-        loop->offer_task(ft::make_shared<event_layer_task_e>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::on_error, e));
-    }
+    // SPECIAL
+
+    // if (loop->is_in_event_loop())
+    // {
+    //     this->on_error(e);
+    // }
+    // else
+    // {
+    loop->offer_task(ft::make_shared<event_layer_task_e>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::on_error, e));
+    // }
 }
 
 void ft::serv::event_layer::invoke_on_inactive()
@@ -286,14 +288,16 @@ void ft::serv::event_layer::invoke_do_disconnect()
 {
     const ft::shared_ptr<event_worker> loop = this->channel.get_loop();
 
-    if (loop->is_in_event_loop())
-    {
-        this->do_disconnect();
-    }
-    else
-    {
-        loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_disconnect));
-    }
+    // SPECIAL
+
+    // if (loop->is_in_event_loop())
+    // {
+    //     this->do_disconnect();
+    // }
+    // else
+    // {
+    loop->offer_task(ft::make_shared<event_layer_task>(*this, this->channel.shared_from_this(), &ft::serv::event_layer::do_disconnect));
+    // }
 }
 
 void ft::serv::event_layer::notify_active()
