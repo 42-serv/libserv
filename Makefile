@@ -23,6 +23,7 @@ SOURCES += \
 	event_layer.cpp \
 	event_worker.cpp \
 	event_worker_group.cpp \
+	file_channel.cpp \
 	logic_adapter.cpp \
 	object_decoder.cpp \
 	object_encoder.cpp \

@@ -12,6 +12,7 @@
 #include "event_layer.hpp"
 #include "event_worker.hpp"
 #include "event_worker_group.hpp"
+#include "file_channel.hpp"
 #include "logger.hpp"
 #include "logic_adapter.hpp"
 #include "object_decoder.hpp"

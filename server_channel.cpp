@@ -3,8 +3,10 @@
 
 #include "server_channel.hpp"
 
+#include "event_channel_base.hpp"
 #include "event_layer.hpp"
 #include "event_worker_group.hpp"
+#include "serv_exception.hpp"
 #include "serv_types.hpp"
 #include "socket_utils.hpp"
 #include "stream_channel.hpp"

@@ -4,10 +4,10 @@
 #include "stream_channel.hpp"
 
 #include "byte_buffer.hpp"
+#include "event_channel_base.hpp"
 #include "event_layer.hpp"
-#include "event_worker_group.hpp"
+#include "serv_exception.hpp"
 #include "serv_types.hpp"
-#include "socket_utils.hpp"
 
 #include <smart_ptr/make_shared.hpp>
 #include <smart_ptr/shared_ptr.hpp>
@@ -32,7 +32,7 @@ void ft::serv::stream_channel::begin_read()
     do
     {
         const ft::shared_ptr<byte_buffer> buf = ft::make_shared<byte_buffer>(this->init_buf_capacity);
-        const long len = socket_utils::recv_socket(this->get_ident(), buf->raw_buffer(), buf->raw_length());
+        const long len = this->do_read(buf->raw_buffer(), buf->raw_length());
         if (len < 0)
         {
             const error_t err = -len;

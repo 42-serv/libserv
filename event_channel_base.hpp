@@ -77,6 +77,8 @@ namespace ft
         protected:
             virtual void begin_read() = 0;
             virtual void begin_write();
+            virtual long do_read(void* const buf, const std::size_t len) throw();
+            virtual long do_write(const void* const buf, const std::size_t len) throw();
 
 #ifdef FT_TRACE
         protected:

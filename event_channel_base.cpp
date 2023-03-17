@@ -8,6 +8,7 @@
 #include "event_layer.hpp"
 #include "event_worker.hpp"
 #include "logger.hpp"
+#include "serv_exception.hpp"
 #include "serv_types.hpp"
 #include "socket_utils.hpp"
 
@@ -351,7 +352,7 @@ void ft::serv::event_channel_base::begin_write()
     std::size_t spin_count = FT_SERV_WRITE_SPIN_COUNT;
     while (!buf.empty())
     {
-        const long len = socket_utils::send_socket(this->get_ident(), buf.get(), buf.size());
+        const long len = this->do_write(buf.get(), buf.size());
         if (len < 0)
         {
             const error_t err = -len;
@@ -387,6 +388,16 @@ void ft::serv::event_channel_base::begin_write()
         this->writability_interested = not_yet_completed;
         worker->watch_ability(*this);
     }
+}
+
+long ft::serv::event_channel_base::do_read(void* const buf, const std::size_t len) throw()
+{
+    return socket_utils::recv_socket(this->get_ident(), buf, len);
+}
+
+long ft::serv::event_channel_base::do_write(const void* const buf, const std::size_t len) throw()
+{
+    return socket_utils::send_socket(this->get_ident(), buf, len);
 }
 
 #ifdef FT_TRACE
