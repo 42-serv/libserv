@@ -5,6 +5,7 @@ CXX = c++
 RM = rm -f
 AR = ar
 ARFLAGS = crs
+MKDIR = mkdir -p
 
 CXXFLAGS += -MMD -MF $(@:.o=.d) -MT $@ -MP
 CXXFLAGS += --std=c++98 -Wall -Wextra -Werror
@@ -75,7 +76,7 @@ cleanobj:	;	$(RM) -r $(OBJECTS_DIR)
 cleanbin:	;	$(RM) $(TARGET)
 
 $(OBJECTS_DIR):
-	mkdir $(OBJECTS_DIR)
+	$(MKDIR) $(OBJECTS_DIR)
 
 $(OBJECTS_DIR)%.o: %.cpp | $(OBJECTS_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
