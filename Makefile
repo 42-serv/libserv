@@ -44,25 +44,21 @@ OBJECTS = $(addprefix $(OBJECTS_DIR), $(SOURCES:.cpp=.o))
 ifdef ASAN
 	CXXFLAGS += -fsanitize=address
 	LDFLAGS += -fsanitize=address
-	DEBUG = 1
 endif
 
 ifdef MSAN
 	CXXFLAGS += -fsanitize=memory
 	LDFLAGS += -fsanitize=memory
-	DEBUG = 1
 endif
 
 ifdef TSAN
 	CXXFLAGS += -fsanitize=thread
 	LDFLAGS += -fsanitize=thread
-	DEBUG = 1
 endif
 
 ifdef UBSAN
 	CXXFLAGS += -fsanitize=undefined
 	LDFLAGS += -fsanitize=undefined
-	DEBUG = 1
 endif
 
 ifdef DEBUG
@@ -77,7 +73,6 @@ all: $(TARGET)
 clean: cleanobj cleanbin
 cleanobj:	;	$(RM) -r $(OBJECTS_DIR)
 cleanbin:	;	$(RM) $(TARGET)
-re: clean	;	$(MAKE)
 
 $(OBJECTS_DIR):
 	mkdir $(OBJECTS_DIR)
