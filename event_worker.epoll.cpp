@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <exception>
 #include <map>
 #include <string>
@@ -53,6 +54,7 @@ namespace ft
             const ident_t ident = channel.get_ident();
             struct ::epoll_event change;
             change.events = flags;
+            std::memset(&change.data, 0, sizeof(change.data));
             change.data.fd = ident;
             if (::epoll_ctl(epoll_fd, epoll_operation, ident, &change) < 0)
             {
@@ -97,6 +99,7 @@ ft::serv::event_worker::event_worker()
 
         struct ::epoll_event change;
         change.events = EPOLLIN;
+        std::memset(&change.data, 0, sizeof(change.data));
         change.data.fd = this->event_ident;
         if (::epoll_ctl(this->loop_ident, EPOLL_CTL_ADD, this->event_ident, &change) < 0)
         {
