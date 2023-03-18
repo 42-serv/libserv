@@ -47,7 +47,7 @@ namespace ft
 
                 gai_guard(const char* host, const char* serv, struct ::addrinfo& hints)
                 {
-                    error_t gai_errno = ::getaddrinfo(host, serv, &hints, &result);
+                    const error_t gai_errno = ::getaddrinfo(host, serv, &hints, &this->result);
                     if (gai_errno != 0)
                     {
                         throw ai_failed(gai_errno);
@@ -56,7 +56,7 @@ namespace ft
 
                 ~gai_guard()
                 {
-                    ::freeaddrinfo(result);
+                    ::freeaddrinfo(this->result);
                 }
 
             private:
@@ -280,7 +280,7 @@ namespace ft
             static inline ident_t forward_lookup(const char* const host, const char* const serv, int ai_hint_flags, int (*const func)(ident_t, const sockaddr*, socklen_t))
             {
                 struct ::addrinfo hints;
-                ::memset(&hints, 0, sizeof(hints));
+                std::memset(&hints, 0, sizeof(hints));
                 hints.ai_family = AF_UNSPEC;
                 hints.ai_socktype = SOCK_STREAM;
                 hints.ai_protocol = 0; // ANY
